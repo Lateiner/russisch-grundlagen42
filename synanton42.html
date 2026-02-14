@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Gegenteile finden</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-dark: #303f9f;
+            --accent: #ff4081;
+            --bg: #f5f5f5;
+            --card: #ffffff;
+            --text: #333;
+            --success: #4caf50;
+            --error: #f44336;
+            --warning: #ff9800; /* Für Reset */
+            --solve: #607d8b;   /* Für Lösung */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; }
+        .subtitle { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
+
+        /* --- PROGRESS BAR --- */
+        .progress-container {
+            background: #e0e0e0;
+            height: 6px;
+            width: 100%;
+        }
+        .progress-bar {
+            background: var(--accent);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* --- QUIZ AREA --- */
+        .quiz-content {
+            padding: 30px 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .question-box {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .main-verb {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+        }
+
+        .context {
+            font-style: italic;
+            color: #666;
+            background: #eee;
+            padding: 4px 12px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .instruction {
+            font-weight: bold;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        /* --- OPTIONS --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: var(--primary);
+            background: #f0f4ff;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:active:not([disabled]) {
+            transform: translateY(0);
+        }
+
+        /* States */
+        .option-btn.correct {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        .option-btn.wrong {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
+            opacity: 0.6;
+        }
+
+        /* --- CONTROL BUTTONS (Reset/Solve) --- */
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: white;
+            flex: 1;
+            max-width: 150px;
+            transition: opacity 0.2s;
+        }
+
+        .control-btn:hover { opacity: 0.9; }
+        .control-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-reset { background-color: var(--warning); }
+        .btn-solve { background-color: var(--solve); }
+
+        /* --- FEEDBACK --- */
+        .feedback-area {
+            margin-top: 20px;
+            min-height: 80px; /* Platz reservieren */
+            text-align: center;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none; /* Hidden by default */
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(63, 81, 181, 0.3);
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .next-btn:hover { background: var(--primary-dark); }
+
+        /* --- SCORE SCREEN --- */
+        .score-screen {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        .final-score {
+            font-size: 3rem;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .restart-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Gegenteile finden</h1>
+        <div class="subtitle">Antonyme zu "писать"-Verben</div>
+    </div>
+    
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div class="quiz-content" id="quizScreen">
+        <div class="question-box">
+            <div class="context" id="qContext">Kontext</div>
+            <div class="main-verb" id="qVerb">Verb</div>
+            <div class="instruction">↔ Was ist das Gegenteil?</div>
+        </div>
+
+        <div class="options-grid" id="optionsContainer">
+            <!-- Buttons generated via JS -->
+        </div>
+
+        <!-- Neue Steuerungsbuttons -->
+        <div class="control-buttons">
+            <button class="control-btn btn-reset" onclick="resetCurrentQuestion()">Zurücksetzen</button>
+            <button class="control-btn btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+        </div>
+
+        <div class="feedback-area">
+            <div id="feedbackText"></div>
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Nächste Frage ➜</button>
+        </div>
+    </div>
+
+    <!-- SCORE SCREEN -->
+    <div class="score-screen" id="scoreScreen">
+        <h2>Geschafft!</h2>
+        <p>Dein Ergebnis:</p>
+        <div class="final-score" id="finalScoreDisplay">0 / 0</div>
+        <p id="scoreMessage"></p>
+        <button class="restart-btn" onclick="initGame()">Nochmal üben</button>
+    </div>
+</div>
+
+<script>
+    // --- DATEN ---
+    const questions = [
+        {
+            verb: "подписаться",
+            context: "Auf einen Kanal / eine Zeitung",
+            correct: "отписаться",
+            distractors: ["записаться", "переписать"],
+            explanation: "под- (dazu/an) ↔ от- (weg/ab)"
+        },
+        {
+            verb: "вписать",
+            context: "Ein Wort in die Lücke",
+            correct: "выписать",
+            distractors: ["списать", "надписать"],
+            explanation: "в- (hinein) ↔ вы- (heraus)"
+        },
+        {
+            verb: "записаться",
+            context: "Einen Arzttermin vereinbaren",
+            correct: "выписаться",
+            distractors: ["подписаться", "дописать"],
+            explanation: "Man meldet sich an (за-) oder ab/lässt sich entlassen (вы-)."
+        },
+        {
+            verb: "дописать",
+            context: "Den Text beenden",
+            correct: "начать писать",
+            distractors: ["переписать", "списать"],
+            explanation: "Das Gegenteil von 'beenden' ist 'anfangen'."
+        },
+        {
+            verb: "списать",
+            context: "In der Prüfung (schummeln)",
+            correct: "написать самому",
+            distractors: ["расписаться", "выписать"],
+            explanation: "Entweder man schreibt ab (списать) oder man macht es selbst."
+        },
+        {
+            verb: "надписать",
+            context: "Etwas oben drüber schreiben",
+            correct: "подписать",
+            distractors: ["вписать", "описать"],
+            explanation: "над- (über) ↔ под- (unter)."
+        },
+        {
+            verb: "расписаться",
+            context: "Im Standesamt (heiraten)",
+            correct: "развестись",
+            distractors: ["подписаться", "записаться"],
+            explanation: "Das ist ein logisches Gegenteil: heiraten ↔ sich scheiden lassen (развестись)."
+        }
+    ];
+
+    let currentQIndex = 0;
+    let score = 0;
+    let isAnswered = false;
+    let helpUsed = false; // Merkt sich, ob "Lösung" benutzt wurde
+
+    // --- INITIALISIERUNG ---
+    function initGame() {
+        currentQIndex = 0;
+        score = 0;
+        document.getElementById('scoreScreen').style.display = 'none';
+        document.getElementById('quizScreen').style.display = 'flex';
+        loadQuestion();
+    }
+
+    // --- FRAGE LADEN ---
+    function loadQuestion() {
+        isAnswered = false;
+        helpUsed = false;
+        const qData = questions[currentQIndex];
+        
+        // UI Update
+        document.getElementById('qVerb').textContent = qData.verb;
+        document.getElementById('qContext').textContent = qData.context;
+        document.getElementById('feedbackText').textContent = '';
+        document.getElementById('nextBtn').style.display = 'none';
+        
+        // Buttons aktivieren
+        const controlBtns = document.querySelectorAll('.control-btn');
+        controlBtns.forEach(btn => btn.disabled = false);
+
+        // Progress Bar
+        const progress = ((currentQIndex) / questions.length) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+
+        // Antworten mischen
+        const allOptions = [qData.correct, ...qData.distractors];
+        allOptions.sort(() => 0.5 - Math.random());
+
+        // Buttons generieren
+        const container = document.getElementById('optionsContainer');
+        container.innerHTML = '';
+
+        allOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => checkAnswer(btn, opt, qData.correct, qData.explanation);
+            container.appendChild(btn);
+        });
+    }
+
+    // --- ANTWORT PRÜFEN ---
+    function checkAnswer(selectedBtn, selectedText, correctText, explanation) {
+        if (isAnswered) return; // Doppelklicks verhindern
+        isAnswered = true;
+
+        const allBtns = document.querySelectorAll('.option-btn');
+
+        if (selectedText === correctText) {
+            // Richtig
+            selectedBtn.classList.add('correct');
+            document.getElementById('feedbackText').innerHTML = `<span style="color:var(--success)">Richtig!</span> ${explanation}`;
+            
+            // Nur Punkt geben, wenn keine Hilfe benutzt wurde
+            if (!helpUsed) {
+                score++;
+            }
+        } else {
+            // Falsch
+            selectedBtn.classList.add('wrong');
+            // Richtige Antwort zeigen
+            allBtns.forEach(btn => {
+                if (btn.textContent === correctText) btn.classList.add('correct');
+            });
+            document.getElementById('feedbackText').innerHTML = `<span style="color:var(--error)">Falsch.</span> Richtig ist: <strong>${correctText}</strong>`;
+        }
+
+        finalizeQuestionStep();
+    }
+
+    // --- ZURÜCKSETZEN ---
+    function resetCurrentQuestion() {
+        if (!isAnswered) return; // Nur zurücksetzen, wenn schon geantwortet wurde
+
+        isAnswered = false;
+        document.getElementById('feedbackText').textContent = '';
+        document.getElementById('nextBtn').style.display = 'none';
+
+        // Klassen entfernen und Buttons aktivieren
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(btn => {
+            btn.className = 'option-btn'; // Klassen reset
+            btn.disabled = false;
+        });
+    }
+
+    // --- LÖSUNG ANZEIGEN ---
+    function showSolution() {
+        if (isAnswered) return;
+        
+        isAnswered = true;
+        helpUsed = true; // Verhindert Punktvergabe
+        
+        const qData = questions[currentQIndex];
+        const btns = document.querySelectorAll('.option-btn');
+
+        btns.forEach(btn => {
+            if (btn.textContent === qData.correct) {
+                btn.classList.add('correct');
+            }
+            btn.disabled = true;
+        });
+
+        document.getElementById('feedbackText').innerHTML = `Lösung: <strong>${qData.correct}</strong>. ${qData.explanation}`;
+        finalizeQuestionStep();
+    }
+
+    // --- SCHRITT ABSCHLIESSEN ---
+    function finalizeQuestionStep() {
+        // Antwort-Buttons deaktivieren
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(btn => btn.disabled = true);
+
+        // Control Buttons deaktivieren (außer Reset, falls wir Reset erlauben wollen - hier aber deaktivieren wir sie, da der Schritt fertig ist)
+        // Aber: Wenn man schon geantwortet hat, macht "Lösung anzeigen" keinen Sinn mehr. "Zurücksetzen" hingegen schon.
+        // Logik: Nach Antwort kann man Resetten ODER Weitergehen. Lösung anzeigen ist sinnlos wenn schon beantwortet.
+        
+        // Wir lassen Reset aktiv, deaktivieren Lösung anzeigen
+        document.querySelector('.btn-solve').disabled = true;
+
+        // Next Button zeigen
+        document.getElementById('nextBtn').style.display = 'inline-block';
+        
+        // Letzter Schritt Progress
+        const progress = ((currentQIndex + 1) / questions.length) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+    }
+
+    // --- NÄCHSTE FRAGE ---
+    function nextQuestion() {
+        currentQIndex++;
+        if (currentQIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    // --- ERGEBNISSE ---
+    function showResults() {
+        document.getElementById('quizScreen').style.display = 'none';
+        document.getElementById('scoreScreen').style.display = 'block';
+        
+        document.getElementById('finalScoreDisplay').textContent = `${score} / ${questions.length}`;
+        
+        const msg = document.getElementById('scoreMessage');
+        if (score === questions.length) {
+            msg.textContent = "Perfekt! Du bist ein Profi.";
+        } else if (score > questions.length / 2) {
+            msg.textContent = "Gut gemacht!";
+        } else {
+            msg.textContent = "Versuch es noch einmal, um die Präfixe zu lernen.";
+        }
+    }
+
+    // Start
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
