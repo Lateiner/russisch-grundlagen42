@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Lückentext (Multiple Choice)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-dark: #303f9f;
+            --accent: #ff4081;
+            --bg: #f2f4f8;
+            --card-bg: #ffffff;
+            --text: #333;
+            --success: #4caf50;
+            --error: #f44336;
+            --neutral: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 100px; /* Platz für Footer */
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- HEADER --- */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--accent);
+            text-align: left;
+            max-width: 600px;
+        }
+
+        /* --- QUESTION CARDS --- */
+        .quiz-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border: 1px solid transparent;
+            transition: transform 0.2s;
+        }
+
+        .translation {
+            color: #666;
+            font-style: italic;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .sentence {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+        }
+
+        .gap {
+            display: inline-block;
+            min-width: 80px;
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+            text-align: center;
+            padding: 0 5px;
+        }
+
+        /* --- OPTIONS BUTTONS --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid var(--neutral);
+            border-radius: 8px;
+            padding: 12px 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            color: var(--text);
+            position: relative;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #e8eaf6;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+        .option-btn.correct::after {
+            content: "✓";
+            position: absolute;
+            right: 10px;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error);
+            border-color: var(--error);
+            color: white;
+            opacity: 0.8;
+        }
+        .option-btn.wrong::after {
+            content: "✗";
+            position: absolute;
+            right: 10px;
+            font-weight: bold;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            transform: none !important;
+        }
+        
+        /* Deaktivierte, nicht gewählte Optionen */
+        .option-btn.faded {
+            opacity: 0.4;
+            border-color: #eee;
+        }
+
+        /* --- FOOTER CONTROLS --- */
+        .footer-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid #ccc;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .ctrl-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        .ctrl-btn:active { transform: scale(0.96); }
+
+        .btn-reset { background-color: var(--primary); }
+        .btn-solve { background-color: #607d8b; }
+
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .sentence { font-size: 1.1rem; }
+            .footer-controls { padding: 10px; gap: 10px; }
+            .ctrl-btn { width: 45%; padding: 12px 10px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Lückentext: schreiben</h1>
+        <div class="instructions">
+            Wähle das passende Verb für die Lücke. Achte auf den deutschen Kontext.
+        </div>
+    </header>
+
+    <div class="quiz-list" id="quizList">
+        <!-- Fragen werden hier generiert -->
+    </div>
+</div>
+
+<div class="footer-controls">
+    <button class="ctrl-btn btn-reset" onclick="initQuiz()">Alles zurücksetzen</button>
+    <button class="ctrl-btn btn-solve" onclick="showAllSolutions()">Lösungen anzeigen</button>
+</div>
+
+<script>
+    // --- DATEN ---
+    // correctIndex: 0 = erste Option, 1 = zweite, 2 = dritte
+    const questions = [
+        {
+            german: "Der Schüler hat bei der Prüfung ______ (abgeschrieben).",
+            sentenceParts: ["Студент на экзамене", "."],
+            options: ["расписал", "списал", "прописал"],
+            correctIndex: 1
+        },
+        {
+            german: "Wir müssen den Vertrag ______ (unterschreiben).",
+            sentenceParts: ["Мы должны", "договор."],
+            options: ["подписать", "надписать", "списать"],
+            correctIndex: 0
+        },
+        {
+            german: "Der Arzt hat das Rezept ______ (ausgestellt).",
+            sentenceParts: ["Врач", "рецепт."],
+            options: ["вписал", "описал", "выписал"],
+            correctIndex: 2
+        },
+        {
+            german: "Er hat den Text endlich ______ (zu Ende geschrieben).",
+            sentenceParts: ["Он наконец", "текст."],
+            options: ["дописал", "переписал", "записал"],
+            correctIndex: 0
+        },
+        {
+            german: "Sie haben gestern im Standesamt ______ (geheiratet).",
+            sentenceParts: ["Они вчера в ЗАГСе", "."],
+            options: ["подписались", "списались", "расписались"],
+            correctIndex: 2
+        },
+        {
+            german: "Ich habe mich für den Kurs ______ (angemeldet).",
+            sentenceParts: ["Я", "на курс."],
+            options: ["записался", "выписался", "написался"],
+            correctIndex: 0
+        },
+        {
+            german: "Hast du dich auf meinen Kanal ______ (abonniert)?",
+            sentenceParts: ["Ты", "на мой канал?"],
+            options: ["расписался", "подписался", "описался"],
+            correctIndex: 1
+        },
+        {
+            german: "Der Künstler hat die Kirche ______ (bemalt).",
+            sentenceParts: ["Художник", "храм."],
+            options: ["списал", "расписал", "записал"],
+            correctIndex: 1
+        },
+        {
+            german: "______ (Tragen Sie) das fehlende Wort ein.",
+            sentenceParts: ["", "пропущенное слово."],
+            options: ["Выпишите", "Спишите", "Впишите"],
+            correctIndex: 2
+        },
+        {
+            german: "Der Text ist schlecht, du musst ihn ______ (neu schreiben).",
+            sentenceParts: ["Текст плохой, тебе нужно его", "."],
+            options: ["переписать", "дописать", "подписать"],
+            correctIndex: 0
+        },
+        {
+            german: "Kannst du den Täter ______ (beschreiben)?",
+            sentenceParts: ["Ты можешь", "преступника?"],
+            options: ["описать", "вписать", "надписать"],
+            correctIndex: 0
+        },
+        {
+            german: "Wir ______ (schreiben uns / chatten) jeden Tag.",
+            sentenceParts: ["Мы", "каждый день."],
+            options: ["списываемся", "переписываемся", "расписываемся"],
+            correctIndex: 1
+        }
+    ];
+
+    // --- INIT ---
+    function initQuiz() {
+        const list = document.getElementById('quizList');
+        list.innerHTML = '';
+
+        questions.forEach((q, qIndex) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${qIndex}`;
+
+            // Optionen mischen für die Anzeige, aber Index tracken
+            // Wir erstellen ein Array von Objekten mit {text, originalIndex}
+            let optionsWithIndex = q.options.map((text, idx) => ({ text, idx }));
+            // Mischen (Shuffle)
+            optionsWithIndex.sort(() => 0.5 - Math.random());
+
+            let optionsHtml = '';
+            optionsWithIndex.forEach((optObj) => {
+                const isCorrect = (optObj.idx === q.correctIndex);
+                optionsHtml += `<button class="option-btn" onclick="checkAnswer(${qIndex}, this, ${isCorrect})">${optObj.text}</button>`;
+            });
+
+            card.innerHTML = `
+                <span class="translation">${q.german}</span>
+                <div class="sentence">
+                    ${q.sentenceParts[0]} 
+                    <span class="gap">_______</span> 
+                    ${q.sentenceParts[1]}
+                </div>
+                <div class="options-grid">
+                    ${optionsHtml}
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    // --- LOGIK ---
+    
+    window.checkAnswer = function(cardIndex, btnElement, isCorrect) {
+        const card = document.getElementById(`card-${cardIndex}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        const gap = card.querySelector('.gap');
+
+        // Buttons deaktivieren
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (isCorrect) {
+            // Richtig
+            btnElement.classList.add('correct');
+            gap.textContent = btnElement.textContent;
+            gap.style.color = 'var(--success)';
+            gap.style.borderBottomColor = 'var(--success)';
+            
+            // Andere ausblenden
+            buttons.forEach(btn => {
+                if (btn !== btnElement) btn.classList.add('faded');
+            });
+        } else {
+            // Falsch
+            btnElement.classList.add('wrong');
+            
+            // Richtige Antwort finden und markieren
+            buttons.forEach(btn => {
+                // Wir müssen den onclick string prüfen oder wir hätten IDs nutzen sollen.
+                // Einfacher: Wir schauen, welche Funktion aufgerufen wird. 
+                // Da wir das onclick attribut gesetzt haben, enthält es "true" als 3. Argument für den richtigen Button.
+                if (btn.getAttribute('onclick').includes('true')) {
+                    btn.classList.add('correct');
+                    gap.textContent = btn.textContent; // Richtige Antwort in Lücke
+                } else {
+                    if (btn !== btnElement) btn.classList.add('faded');
+                }
+            });
+            
+            gap.style.color = 'var(--error)';
+            gap.style.borderBottomColor = 'var(--error)';
+        }
+    }
+
+    window.showAllSolutions = function() {
+        const cards = document.querySelectorAll('.card');
+        
+        cards.forEach(card => {
+            const buttons = card.querySelectorAll('.option-btn');
+            
+            // Prüfen, ob schon beantwortet (irgendein Button ist disabled)
+            if (buttons[0].disabled) return;
+
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (btn.getAttribute('onclick').includes('true')) {
+                    btn.classList.add('correct');
+                    const gap = card.querySelector('.gap');
+                    gap.textContent = btn.textContent;
+                    gap.style.color = 'var(--primary)';
+                    gap.style.borderBottomColor = 'var(--primary)';
+                } else {
+                    btn.classList.add('faded');
+                }
+            });
+        });
+    }
+
+    // Start
+    initQuiz();
+
+</script>
+
+</body>
+</html>
