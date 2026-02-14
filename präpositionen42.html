@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Präpositionen ergänzen</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --accent: #ff4081;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #333;
+            --success: #4caf50;
+            --success-bg: #dcedc8;
+            --error: #f44336;
+            --error-bg: #ffcdd2;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 80px; /* Platz für Footer */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 10px;
+        }
+
+        .instructions {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--accent);
+            line-height: 1.5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* --- STICKY PREPOSITION BANK --- */
+        .sticky-bank {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg);
+            padding: 10px 0;
+            box-shadow: 0 4px 6px -4px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            min-height: 60px;
+            transition: height 0.3s;
+        }
+
+        .draggable {
+            background: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%; /* Runde Buttons für Präpositionen */
+            cursor: grab;
+            font-weight: bold;
+            font-size: 1rem;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            touch-action: none;
+            transition: transform 0.1s, opacity 0.2s, background-color 0.2s;
+        }
+
+        .draggable:active { cursor: grabbing; transform: scale(1.1); }
+        
+        .draggable.used {
+            opacity: 0; /* Unsichtbar machen, wenn platziert */
+            pointer-events: none;
+            width: 0; 
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* --- SENTENCES LIST --- */
+        .sentences-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sentence-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 1.2rem;
+            line-height: 1.8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .german-hint {
+            font-size: 0.9rem;
+            color: #777;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .russian-text {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* --- DROPZONES --- */
+        .dropzone {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 40px;
+            border-bottom: 3px dashed #999;
+            background: #fafafa;
+            margin: 0 5px;
+            vertical-align: middle;
+            transition: all 0.2s;
+            color: var(--primary);
+            font-weight: bold;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .dropzone.highlight {
+            background: var(--primary-light);
+            border-bottom-color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .dropzone.correct {
+            background: var(--success-bg);
+            border-bottom: 3px solid var(--success);
+            color: #1b5e20;
+            border-radius: 4px;
+        }
+
+        .dropzone.wrong-anim {
+            animation: shake 0.4s;
+            background: var(--error-bg);
+            border-bottom-color: var(--error);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* --- FOOTER --- */
+        .footer-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid #ccc;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 200;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-reset { background-color: var(--primary); }
+        .btn-solve { background-color: #607d8b; }
+
+        @media (max-width: 600px) {
+            .sentence-card { padding: 15px; }
+            .draggable { width: 35px; height: 35px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Präpositionen ergänzen</h1>
+    <div class="instructions">
+        Welche Präposition passt? Ziehe die richtige Präposition in die Lücke.<br>
+        Achte auf den Fall (Kasus) des Substantivs.
+    </div>
+
+    <!-- Sticky Preposition Bank -->
+    <div class="sticky-bank">
+        <div class="word-pool" id="wordPool">
+            <!-- Words generated by JS -->
+        </div>
+    </div>
+
+    <!-- Sentences -->
+    <div class="sentences-list" id="sentencesList">
+        <!-- Generated by JS -->
+    </div>
+</div>
+
+<div class="footer-controls">
+    <button class="btn-reset" onclick="initGame()">Alles zurücksetzen</button>
+    <button class="btn-solve" onclick="solveGame()">Lösung anzeigen</button>
+</div>
+
+<script>
+    // --- DATEN ---
+    const tasks = [
+        { 
+            german: "Ich habe mich für einen Termin beim Arzt angemeldet.",
+            pre: "Я записался", 
+            post: "приём к врачу.", 
+            correct: "на" 
+        },
+        { 
+            german: "Der Patient hat sich aus dem Krankenhaus entlassen.",
+            pre: "Пациент выписался", 
+            post: "больницы.", 
+            correct: "из" 
+        },
+        { 
+            german: "Abonniere meinen Kanal!",
+            pre: "Подпишись", 
+            post: "мой канал!", 
+            correct: "на" 
+        },
+        { 
+            german: "Tragen Sie das Wort in die Tabelle ein.",
+            pre: "Впишите слово", 
+            post: "таблицу.", 
+            correct: "в" 
+        },
+        { 
+            german: "Er hat von der Tafel abgeschrieben.",
+            pre: "Он списал", 
+            post: "доски.", 
+            correct: "с" 
+        },
+        { 
+            german: "Er hat beim Nachbarn abgeschrieben.",
+            pre: "Он списал", 
+            post: "соседа.", 
+            correct: "у" 
+        },
+        { 
+            german: "Schreiben Sie die Verben aus dem Text heraus.",
+            pre: "Выпишите глаголы", 
+            post: "текста.", 
+            correct: "из" 
+        },
+        { 
+            german: "Ich habe mich vom Newsletter abgemeldet.",
+            pre: "Я отписался", 
+            post: "рассылки.", 
+            correct: "от" 
+        },
+        { 
+            german: "Bitte unterschreiben Sie im Dokument (registrieren).",
+            pre: "Пожалуйста, распишитесь", 
+            post: "документе.", 
+            correct: "в" 
+        },
+        { 
+            german: "Schreibe den Satz ins Heft (ab/um).",
+            pre: "Перепиши предложение", 
+            post: "тетрадь.", 
+            correct: "в" 
+        },
+        { 
+            german: "Ich gehe zum Arzt (um mich anzumelden).",
+            pre: "Я записался", 
+            post: "врачу.", 
+            correct: "к" 
+        }
+    ];
+
+    let draggedElement = null;
+
+    // --- INITIALISIERUNG ---
+    function initGame() {
+        const pool = document.getElementById('wordPool');
+        const list = document.getElementById('sentencesList');
+        
+        pool.innerHTML = '';
+        list.innerHTML = '';
+
+        // 1. Sätze erstellen
+        tasks.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'sentence-card';
+            
+            div.innerHTML = `
+                <span class="german-hint">${item.german}</span>
+                <div class="russian-text">
+                    ${item.pre} 
+                    <div class="dropzone" data-target="${item.correct}"></div> 
+                    ${item.post}
+                </div>
+            `;
+            list.appendChild(div);
+        });
+
+        // 2. Präpositionen für den Pool sammeln
+        // Wir erstellen genau so viele Kacheln, wie wir Antworten brauchen.
+        const answers = tasks.map(item => item.correct);
+        answers.sort(() => 0.5 - Math.random());
+
+        answers.forEach((word, idx) => {
+            const el = document.createElement('div');
+            el.className = 'draggable';
+            el.draggable = true;
+            el.textContent = word;
+            el.dataset.word = word;
+            el.id = `drag-${idx}`; // Unique ID
+            
+            el.addEventListener('dragstart', handleDragStart);
+            el.addEventListener('dragend', handleDragEnd);
+            
+            pool.appendChild(el);
+        });
+
+        // 3. Dropzones aktivieren
+        document.querySelectorAll('.dropzone').forEach(addDropEvents);
+    }
+
+    // --- DRAG & DROP LOGIK ---
+    function handleDragStart(e) {
+        draggedElement = this;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => this.style.opacity = '0.5', 0);
+    }
+
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        draggedElement = null;
+    }
+
+    function addDropEvents(zone) {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (!this.classList.contains('correct')) {
+                this.classList.add('highlight');
+            }
+        });
+
+        zone.addEventListener('dragleave', function(e) {
+            this.classList.remove('highlight');
+        });
+
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('highlight');
+
+            if (!draggedElement) return;
+            if (this.classList.contains('correct')) return;
+
+            const expected = this.dataset.target;
+            const actual = draggedElement.dataset.word;
+
+            // Logik: Was passiert, wenn schon ein Wort in der Lücke liegt?
+            // Wir prüfen, ob die Zone Text hat. Wenn ja, muss das alte Wort zurück in den Pool.
+            // (Vereinfachung für dieses Beispiel: Wir erlauben nur leere Zonen oder ersetzen ohne Rückgabe ist schwierig
+            // weil wir "Finite Pool" haben. Wir machen es so: Falsche Antworten kommen sofort zurück in den Pool)
+
+            if (expected === actual) {
+                // RICHTIG
+                this.textContent = actual;
+                this.classList.add('correct');
+                
+                // Element im Pool "entfernen" (ausblenden)
+                draggedElement.classList.add('used');
+                draggedElement.draggable = false;
+            } else {
+                // FALSCH
+                this.classList.add('wrong-anim');
+                setTimeout(() => this.classList.remove('wrong-anim'), 400);
+                // Das Element bleibt im Pool sichtbar, da wir es nicht 'used' gesetzt haben.
+            }
+        });
+    }
+
+    // --- SOLUTION ---
+    function solveGame() {
+        const dropzones = document.querySelectorAll('.dropzone:not(.correct)');
+        const draggables = Array.from(document.querySelectorAll('.draggable:not(.used)'));
+
+        dropzones.forEach(zone => {
+            const needed = zone.dataset.target;
+            
+            // Finde passendes Element im Pool
+            const matchIndex = draggables.findIndex(d => d.dataset.word === needed);
+            
+            if (matchIndex > -1) {
+                const match = draggables[matchIndex];
+                zone.textContent = needed;
+                zone.classList.add('correct');
+                match.classList.add('used');
+                
+                // Aus temporärer Liste entfernen, damit wir nicht dasselbe Element zweimal nehmen
+                draggables.splice(matchIndex, 1);
+            }
+        });
+    }
+
+    // Start
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
