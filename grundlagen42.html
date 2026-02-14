@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Grammatik: Das Verb писать und seine Präfixe</title>
+    <!-- Polyfill für Drag & Drop auf Touch-Geräten -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --warning-color: #ff9800;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .intro-box {
+            background-color: #e8eaf6;
+            padding: 20px;
+            border-left: 5px solid var(--primary-color);
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .task-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .task-content {
+            margin-bottom: 20px;
+        }
+
+        /* Interaktive Elemente */
+        select, input[type="text"] {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            margin: 5px 0;
+        }
+
+        .option-label {
+            display: block;
+            margin: 8px 0;
+            cursor: pointer;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            transition: background 0.2s;
+        }
+
+        .option-label:hover {
+            background: #f0f0f0;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        /* Drag & Drop Styles */
+        .dd-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .draggable {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: grab;
+            user-select: none;
+            touch-action: none; /* Wichtig für Polyfill */
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+        }
+
+        .dropzone {
+            display: inline-block;
+            min-width: 120px;
+            min-height: 40px;
+            border: 2px dashed #aaa;
+            border-radius: 8px;
+            vertical-align: middle;
+            background: #fafafa;
+            padding: 5px;
+            margin: 0 5px;
+            text-align: center;
+        }
+
+        .dropzone-large {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            text-align: left;
+        }
+        
+        .dropzone.highlight {
+            border-color: var(--primary-color);
+            background-color: #e8eaf6;
+        }
+
+        /* Feedback Styles */
+        .correct {
+            background-color: #dcedc8 !important;
+            border-color: var(--success-color) !important;
+            color: #2e7d32;
+        }
+
+        .wrong {
+            background-color: #ffcdd2 !important;
+            border-color: var(--error-color) !important;
+            color: #c62828;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .btn-check { background-color: var(--success-color); }
+        .btn-reset { background-color: var(--warning-color); }
+        .btn-solve { background-color: var(--primary-color); }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .btn-group { flex-direction: column; }
+            button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Die russische Grammatik</h1>
+    <h2>Das Verb писать und seine Präfixe</h2>
+
+    <div class="intro-box">
+        <h3>Einführung</h3>
+        <p>Das Verb <strong>писать</strong> (schreiben) ist im Russischen sehr flexibel. Durch das Hinzufügen von Präfixen (Vorsilben) ändert sich die Bedeutung oder Nuance der Handlung erheblich. Hier sind die wichtigsten Varianten:</p>
+        <ul>
+            <li><strong>написать:</strong> Die vollendete Form zu <em>писать</em> (einen Text fertigstellen).</li>
+            <li><strong>выписать:</strong> Herausschreiben (aus einem Text), ein Rezept ausstellen oder jemanden aus dem Krankenhaus entlassen.</li>
+            <li><strong>записать:</strong> Notieren, aufschreiben oder einen Termin vereinbaren/anmelden.</li>
+            <li><strong>подписать:</strong> Unterschreiben (ein Dokument) oder abonnieren.</li>
+            <li><strong>списать:</strong> Abschreiben (kopieren) oder bei einer Prüfung schummeln (abgucken).</li>
+            <li><strong>переписать:</strong> Umschreiben (neu schreiben) oder korrespondieren (sich schreiben).</li>
+            <li><strong>вписать:</strong> Etwas in ein Formular eintragen (hineinschreiben).</li>
+        </ul>
+        <p>In den folgenden Aufgaben üben wir diese Bedeutungen.</p>
+    </div>
+
+    <!-- Aufgabe 1 -->
+    <div class="task-card" id="task1">
+        <h3>Aufgabe 1: Präfixe und deutsche Bedeutung</h3>
+        <p>Ziehe die deutsche Bedeutung auf das passende russische Verb.</p>
+        
+        <div class="dd-container" id="pool1">
+            <!-- Gemischte Reihenfolge -->
+            <div class="draggable" draggable="true" id="d1_3" data-match="t1_3">Herausschreiben</div>
+            <div class="draggable" draggable="true" id="d1_1" data-match="t1_1">Abschreiben (Schummeln)</div>
+            <div class="draggable" draggable="true" id="d1_2" data-match="t1_2">Unterschreiben</div>
+        </div>
+
+        <div class="task-content">
+            <p>1. <strong>С</strong>писать: <span class="dropzone" id="t1_1" data-accept="d1_1"></span></p>
+            <p>2. <strong>Под</strong>писать: <span class="dropzone" id="t1_2" data-accept="d1_2"></span></p>
+            <p>3. <strong>Вы</strong>писать: <span class="dropzone" id="t1_3" data-accept="d1_3"></span></p>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkDragDrop('task1')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDragDrop('task1')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDragDrop('task1')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 2 -->
+    <div class="task-card" id="task2">
+        <h3>Aufgabe 2: Der Aspektpartner</h3>
+        <p>Was ist das perfektive (vollendete) Standardpartnerverb zu „писать“?</p>
+        <div class="task-content">
+            <label class="option-label"><input type="radio" name="t2" value="wrong"> пописать</label>
+            <label class="option-label"><input type="radio" name="t2" value="correct"> написать</label>
+            <label class="option-label"><input type="radio" name="t2" value="wrong"> дописать</label>
+        </div>
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkRadio('task2', 'correct')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('task2')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('task2', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 3 -->
+    <div class="task-card" id="task3">
+        <h3>Aufgabe 3: Im Krankenhaus</h3>
+        <p>Wähle das passende Verb für den Satz.</p>
+        <div class="task-content">
+            <p>Der Arzt sagt: „Sie sind gesund. Ich werde Sie heute ...“</p>
+            <p>Врач говорит: &bdquo;Вы здоровы. Я вас сегодня <select id="t3_select">
+                <option value="">--- bitte wählen ---</option>
+                <option value="wrong1">запишу</option>
+                <option value="correct">выпишу</option>
+                <option value="wrong2">подпишу</option>
+            </select>.&ldquo;</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkSelect('task3', 't3_select', 'correct')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetSelect('task3', 't3_select')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveSelect('task3', 't3_select', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 4 -->
+    <div class="task-card" id="task4">
+        <h3>Aufgabe 4: Die Prüfung</h3>
+        <p>Was bedeutet dieser Satz? <em>Студент списал на экзамене.</em></p>
+        <div class="task-content">
+            <label class="option-label"><input type="radio" name="t4" value="wrong"> Der Student hat die Prüfung bestanden.</label>
+            <label class="option-label"><input type="radio" name="t4" value="correct"> Der Student hat bei der Prüfung abgeschrieben (geschummelt).</label>
+            <label class="option-label"><input type="radio" name="t4" value="wrong"> Der Student hat viel geschrieben.</label>
+        </div>
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkRadio('task4', 'correct')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('task4')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('task4', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 5 -->
+    <div class="task-card" id="task5">
+        <h3>Aufgabe 5: Heiraten oder Unterschreiben?</h3>
+        <p>Welches Verb passt, wenn ein Paar standesamtlich heiratet (unterschreibt)?</p>
+        <div class="task-content">
+            <p>Мы хотим ... в ЗАГСе. (Wir wollen im Standesamt heiraten.)</p>
+            <select id="t5_select">
+                <option value="">--- bitte wählen ---</option>
+                <option value="correct">расписаться</option>
+                <option value="wrong">подписаться</option>
+                <option value="wrong2">записаться</option>
+            </select>
+        </div>
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkSelect('task5', 't5_select', 'correct')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetSelect('task5', 't5_select')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveSelect('task5', 't5_select', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 6 -->
+    <div class="task-card" id="task6">
+        <h3>Aufgabe 6: Satzbau</h3>
+        <p>Ordne die Wörter, um den Satz „Ich muss mich beim Arzt anmelden“ zu bilden.</p>
+        
+        <div class="dd-container" id="pool6">
+            <div class="draggable" draggable="true" id="d6_1">Я</div>
+            <div class="draggable" draggable="true" id="d6_2">к</div>
+            <div class="draggable" draggable="true" id="d6_3">врачу</div>
+            <div class="draggable" draggable="true" id="d6_4">должен</div>
+            <div class="draggable" draggable="true" id="d6_5">записаться</div>
+        </div>
+
+        <div class="task-content">
+            <div class="dropzone" id="t6_1" data-accept="d6_1" style="min-width: 40px;"></div>
+            <div class="dropzone" id="t6_2" data-accept="d6_4"></div>
+            <div class="dropzone" id="t6_3" data-accept="d6_5"></div>
+            <div class="dropzone" id="t6_4" data-accept="d6_2" style="min-width: 40px;"></div>
+            <div class="dropzone" id="t6_5" data-accept="d6_3"></div>
+            .
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkDragDrop('task6')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDragDrop('task6')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDragDrop('task6')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 7 -->
+    <div class="task-card" id="task7">
+        <h3>Aufgabe 7: Kunst und Dekoration</h3>
+        <p>Wenn ein Künstler eine Kirche mit Malereien verziert, welches Verb nutzt man?</p>
+        <div class="task-content">
+            <label class="option-label"><input type="radio" name="t7" value="correct"> расписывать (храм)</label>
+            <label class="option-label"><input type="radio" name="t7" value="wrong"> списывать (храм)</label>
+            <label class="option-label"><input type="radio" name="t7" value="wrong"> надписывать (храм)</label>
+        </div>
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkRadio('task7', 'correct')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('task7')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('task7', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 8 -->
+    <div class="task-card" id="task8">
+        <h3>Aufgabe 8: Verb und Objekt</h3>
+        <p>Welches Objekt passt am besten zu welchem Verb? Ziehe das Objekt zum Verb.</p>
+        
+        <div class="dd-container" id="pool8">
+            <!-- Gemischte Reihenfolge -->
+            <div class="draggable" draggable="true" id="d8_2" data-match="t8_2">договор (Vertrag)</div>
+            <div class="draggable" draggable="true" id="d8_1" data-match="t8_1">рецепт (Rezept)</div>
+        </div>
+
+        <div class="task-content">
+            <p>1. Врач выписал ... <span class="dropzone" id="t8_1" data-accept="d8_1"></span></p>
+            <p>2. Директор подписал ... <span class="dropzone" id="t8_2" data-accept="d8_2"></span></p>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkDragDrop('task8')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDragDrop('task8')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDragDrop('task8')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 9 -->
+    <div class="task-card" id="task9">
+        <h3>Aufgabe 9: Kommunikation</h3>
+        <p>Wie sagt man „Wir schreiben uns“ (z.B. per WhatsApp oder E-Mail)?</p>
+        <div class="task-content">
+            Мы часто ...
+            <select id="t9_select">
+                <option value="">---</option>
+                <option value="correct">переписываемся</option>
+                <option value="wrong1">списываемся</option>
+                <option value="wrong2">надписываемся</option>
+            </select>.
+        </div>
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkSelect('task9', 't9_select', 'correct')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetSelect('task9', 't9_select')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveSelect('task9', 't9_select', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 10 -->
+    <div class="task-card" id="task10">
+        <h3>Aufgabe 10: Feinheiten</h3>
+        <p>Der Text war schlecht. Der Lehrer hat gesagt, ich soll ihn <strong>neu schreiben</strong>.</p>
+        <div class="task-content">
+            <label class="option-label"><input type="radio" name="t10" value="wrong"> дописать (fertig schreiben)</label>
+            <label class="option-label"><input type="radio" name="t10" value="correct"> переписать (umschreiben/neu schreiben)</label>
+            <label class="option-label"><input type="radio" name="t10" value="wrong"> записать (notieren)</label>
+        </div>
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkRadio('task10', 'correct')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('task10')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('task10', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 11 -->
+    <div class="task-card" id="task11">
+        <h3>Aufgabe 11: Rein oder Raus?</h3>
+        <p>Ordne die Verben zu: Geht etwas „hinein“ (eintragen) oder „heraus“ (ausschreiben)?</p>
+        
+        <div class="dd-container" id="pool11">
+            <!-- Gemischte Reihenfolge -->
+            <div class="draggable" draggable="true" id="d11_2" data-match="t11_2">выписать (слова из текста)</div>
+            <div class="draggable" draggable="true" id="d11_1" data-match="t11_1">вписать (слово в кроссворд)</div>
+        </div>
+
+        <div class="task-content">
+            <div style="margin-bottom: 10px;">
+                <strong>Hinein (In):</strong>
+                <span class="dropzone dropzone-large" id="t11_1" data-accept="d11_1"></span>
+            </div>
+            <div>
+                <strong>Heraus (Aus):</strong>
+                <span class="dropzone dropzone-large" id="t11_2" data-accept="d11_2"></span>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkDragDrop('task11')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDragDrop('task11')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDragDrop('task11')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- Aufgabe 12 -->
+    <div class="task-card" id="task12">
+        <h3>Aufgabe 12: Beschreiben</h3>
+        <p>„Kannst du mir den Täter <strong>описать</strong>?“ – Was bedeutet das Verb hier?</p>
+        <div class="task-content">
+            <label class="option-label"><input type="radio" name="t12" value="wrong"> Anzeigen</label>
+            <label class="option-label"><input type="radio" name="t12" value="wrong"> Aufschreiben</label>
+            <label class="option-label"><input type="radio" name="t12" value="correct"> Beschreiben (wie er aussieht)</label>
+        </div>
+        <div class="btn-group">
+            <button class="btn-check" onclick="checkRadio('task12', 'correct')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetRadio('task12')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadio('task12', 'correct')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- Allgemeine Hilfsfunktionen ---
+    
+    function clearFeedback(containerId) {
+        const container = document.getElementById(containerId);
+        // Remove classes from inputs/selects
+        const inputs = container.querySelectorAll('input, select, .dropzone');
+        inputs.forEach(el => {
+            el.classList.remove('correct', 'wrong');
+            el.style.backgroundColor = ''; // Reset inline styles
+        });
+        // Remove classes from labels
+        const labels = container.querySelectorAll('.option-label');
+        labels.forEach(el => {
+            el.classList.remove('correct', 'wrong');
+        });
+    }
+
+    // --- Radio Button Logic ---
+
+    function checkRadio(taskId, correctValue) {
+        clearFeedback(taskId);
+        const container = document.getElementById(taskId);
+        const radios = container.querySelectorAll('input[type="radio"]');
+        let selected = null;
+
+        radios.forEach(radio => {
+            if (radio.checked) {
+                selected = radio;
+            }
+        });
+
+        if (selected) {
+            const parent = selected.closest('.option-label');
+            if (selected.value === correctValue) {
+                parent.classList.add('correct');
+            } else {
+                parent.classList.add('wrong');
+            }
+        }
+    }
+
+    function resetRadio(taskId) {
+        clearFeedback(taskId);
+        const container = document.getElementById(taskId);
+        const radios = container.querySelectorAll('input[type="radio"]');
+        radios.forEach(r => r.checked = false);
+    }
+
+    function solveRadio(taskId, correctValue) {
+        resetRadio(taskId);
+        const container = document.getElementById(taskId);
+        const radios = container.querySelectorAll('input[type="radio"]');
+        radios.forEach(radio => {
+            if (radio.value === correctValue) {
+                radio.checked = true;
+                checkRadio(taskId, correctValue);
+            }
+        });
+    }
+
+    // --- Select/Dropdown Logic ---
+
+    function checkSelect(taskId, selectId, correctValue) {
+        const select = document.getElementById(selectId);
+        select.classList.remove('correct', 'wrong');
+        
+        if (select.value === correctValue) {
+            select.classList.add('correct');
+        } else {
+            select.classList.add('wrong');
+        }
+    }
+
+    function resetSelect(taskId, selectId) {
+        const select = document.getElementById(selectId);
+        select.value = "";
+        select.classList.remove('correct', 'wrong');
+    }
+
+    function solveSelect(taskId, selectId, correctValue) {
+        const select = document.getElementById(selectId);
+        select.value = correctValue;
+        checkSelect(taskId, selectId, correctValue);
+    }
+
+    // --- Drag and Drop Logic ---
+
+    let draggedItem = null;
+
+    document.querySelectorAll('.draggable').forEach(item => {
+        item.addEventListener('dragstart', function(e) {
+            draggedItem = this;
+            e.dataTransfer.effectAllowed = 'move';
+            this.style.opacity = '0.5';
+        });
+
+        item.addEventListener('dragend', function(e) {
+            this.style.opacity = '1';
+            draggedItem = null;
+        });
+    });
+
+    document.querySelectorAll('.dropzone').forEach(zone => {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault(); // Necessary to allow dropping
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('highlight');
+        });
+
+        zone.addEventListener('dragleave', function(e) {
+            this.classList.remove('highlight');
+        });
+
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('highlight');
+            if (draggedItem) {
+                // Wenn schon was drin ist, zurück in den Pool schicken
+                if (this.children.length > 0) {
+                    const existing = this.children[0];
+                    const taskContainer = this.closest('.task-card');
+                    const pool = taskContainer.querySelector('.dd-container');
+                    pool.appendChild(existing);
+                }
+                this.appendChild(draggedItem);
+            }
+        });
+    });
+    
+    // Ermöglicht das Zurückziehen in den Pool
+    document.querySelectorAll('.dd-container').forEach(pool => {
+         pool.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('highlight');
+        });
+         pool.addEventListener('dragleave', function(e) {
+            this.classList.remove('highlight');
+        });
+        pool.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('highlight');
+            if(draggedItem) {
+                this.appendChild(draggedItem);
+            }
+        });
+    });
+
+    function checkDragDrop(taskId) {
+        const container = document.getElementById(taskId);
+        const dropzones = container.querySelectorAll('.dropzone');
+        
+        dropzones.forEach(zone => {
+            zone.classList.remove('correct', 'wrong');
+            if (zone.children.length > 0) {
+                const item = zone.children[0];
+                const acceptedId = zone.getAttribute('data-accept');
+                
+                if (acceptedId) {
+                    if (item.id === acceptedId) {
+                        zone.classList.add('correct');
+                    } else {
+                        zone.classList.add('wrong');
+                    }
+                } else {
+                    zone.classList.add('wrong');
+                }
+            } else {
+                zone.classList.add('wrong');
+            }
+        });
+    }
+
+    // Hilfsfunktion zum Mischen eines Arrays (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function resetDragDrop(taskId) {
+        const container = document.getElementById(taskId);
+        const pool = container.querySelector('.dd-container');
+        const draggables = container.querySelectorAll('.draggable');
+        const dropzones = container.querySelectorAll('.dropzone');
+
+        // Feedback entfernen
+        dropzones.forEach(z => z.classList.remove('correct', 'wrong', 'highlight'));
+
+        // Alle Elemente sammeln
+        const draggablesArray = Array.from(draggables);
+        
+        // Mischen, damit die Lösung nicht offensichtlich wird
+        shuffleArray(draggablesArray);
+
+        // Zurück in den Pool legen
+        draggablesArray.forEach(item => {
+            pool.appendChild(item);
+        });
+    }
+
+    function solveDragDrop(taskId) {
+        // Erst aufräumen (ohne Mischen, wir setzen sie ja gleich richtig)
+        const container = document.getElementById(taskId);
+        const dropzones = container.querySelectorAll('.dropzone');
+        // Elemente aus Dropzones holen und irgendwo zwischenparken oder direkt ansprechen
+        // Einfachste Methode: Wir iterieren über die Dropzones und suchen das passende Element im Dokument
+        
+        dropzones.forEach(zone => {
+            // Feedback entfernen
+            zone.classList.remove('correct', 'wrong', 'highlight');
+            
+            const correctId = zone.getAttribute('data-accept');
+            if (correctId) {
+                const item = document.getElementById(correctId);
+                if (item) {
+                    zone.appendChild(item);
+                    zone.classList.add('correct');
+                }
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>
