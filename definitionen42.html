@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Definitionen verbinden</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --success: #4caf50;
+            --error: #f44336;
+            --text: #333;
+            --bg: #f9f9f9;
+            --item-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 30px;
+            font-weight: normal;
+        }
+
+        /* --- GAME LAYOUT --- */
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .column-header {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- ITEM STYLES --- */
+        .item {
+            background: var(--item-bg);
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            position: relative;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            min-height: 50px; /* Einheitliche Höhe */
+        }
+
+        .item:hover {
+            border-color: #bbb;
+            background: #fafafa;
+        }
+
+        /* Selected State (Waiting for match) */
+        .item.selected {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+            box-shadow: 0 0 0 2px var(--primary-light);
+            transform: scale(1.02);
+            z-index: 2;
+        }
+
+        /* Correct State */
+        .item.matched {
+            border-color: var(--success);
+            background-color: #e8f5e9; /* Light Green */
+            color: #2e7d32;
+            cursor: default;
+            pointer-events: none; /* Disable clicks */
+            opacity: 0.8;
+        }
+        
+        /* Icon for matched items */
+        .item.matched::after {
+            content: '✓';
+            position: absolute;
+            right: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Error Animation */
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+            border-color: var(--error) !important;
+            background-color: #ffebee !important;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* --- BUTTONS --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.2s;
+            font-size: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        button:active { transform: scale(0.98); }
+
+        .btn-reset { background-color: var(--primary); }
+        .btn-solve { background-color: #607d8b; }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 700px) {
+            .game-board {
+                grid-template-columns: 1fr; /* Stack columns on mobile */
+                gap: 40px;
+            }
+            
+            .item {
+                padding: 12px;
+                font-size: 0.95rem;
+            }
+
+            .column-header {
+                background: #eee;
+                padding: 5px;
+                border-radius: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Wortschatz-Training: schreiben</h1>
+    <h2>Tippe auf ein Verb (links) und dann auf die passende Definition (rechts).</h2>
+
+    <div class="game-board">
+        <!-- Linke Spalte: Verben -->
+        <div class="column" id="col-verbs">
+            <div class="column-header">Das Verb</div>
+            <!-- Wird per JS gefüllt -->
+        </div>
+
+        <!-- Rechte Spalte: Definitionen -->
+        <div class="column" id="col-defs">
+            <div class="column-header">Die Bedeutung</div>
+            <!-- Wird per JS gefüllt -->
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="initGame()">Neu starten</button>
+        <button class="btn-solve" onclick="solveGame()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // --- DATEN ---
+    const pairs = [
+        { id: 1, verb: 'выписаться', def: 'das Krankenhaus verlassen dürfen (entlassen werden)' },
+        { id: 2, verb: 'записаться', def: 'einen Termin vereinbaren (sich anmelden)' },
+        { id: 3, verb: 'подписать', def: 'unterschreiben (einen Vertrag)' },
+        { id: 4, verb: 'списать', def: 'in der Prüfung abschreiben (schummeln)' },
+        { id: 5, verb: 'переписываться', def: 'sich gegenseitig Nachrichten schreiben' },
+        { id: 6, verb: 'описать', def: 'jemanden oder etwas beschreiben' },
+        { id: 7, verb: 'вписать', def: 'ein Wort in eine Lücke eintragen' },
+        { id: 8, verb: 'дописать', def: 'einen Text bis zum Ende schreiben' },
+        { id: 9, verb: 'расписаться', def: 'standesamtlich heiraten' },
+        { id: 10, verb: 'надписать', def: 'etwas beschriften (oben drüber schreiben)' }
+    ];
+
+    let selectedVerb = null;
+    let selectedDef = null;
+
+    // --- INITIALISIERUNG ---
+    function initGame() {
+        const colVerbs = document.getElementById('col-verbs');
+        const colDefs = document.getElementById('col-defs');
+        
+        // Header behalten, Inhalt leeren (wir löschen alle Elemente nach dem Header)
+        while (colVerbs.children.length > 1) colVerbs.removeChild(colVerbs.lastChild);
+        while (colDefs.children.length > 1) colDefs.removeChild(colDefs.lastChild);
+
+        selectedVerb = null;
+        selectedDef = null;
+
+        // 1. Verben vorbereiten (Reihenfolge A)
+        // Wir mischen auch die linke Seite leicht, damit es nicht immer gleich aussieht
+        const shuffledVerbs = [...pairs].sort(() => 0.5 - Math.random());
+        
+        shuffledVerbs.forEach(pair => {
+            const btn = createItem(pair.verb, 'verb', pair.id);
+            colVerbs.appendChild(btn);
+        });
+
+        // 2. Definitionen vorbereiten (Reihenfolge B - stark gemischt)
+        const shuffledDefs = [...pairs].sort(() => 0.5 - Math.random());
+
+        shuffledDefs.forEach(pair => {
+            const btn = createItem(pair.def, 'def', pair.id);
+            colDefs.appendChild(btn);
+        });
+    }
+
+    // --- HELPER: ITEM ERSTELLEN ---
+    function createItem(text, type, id) {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.textContent = text;
+        div.dataset.id = id;
+        div.dataset.type = type;
+        
+        div.addEventListener('click', () => handleSelection(div));
+        return div;
+    }
+
+    // --- SPIEL-LOGIK ---
+    function handleSelection(element) {
+        // Ignorieren, wenn schon gelöst
+        if (element.classList.contains('matched')) return;
+
+        const type = element.dataset.type;
+
+        // 1. Auswahl setzen & visuell markieren
+        if (type === 'verb') {
+            if (selectedVerb) selectedVerb.classList.remove('selected');
+            selectedVerb = element;
+            selectedVerb.classList.add('selected');
+        } else {
+            if (selectedDef) selectedDef.classList.remove('selected');
+            selectedDef = element;
+            selectedDef.classList.add('selected');
+        }
+
+        // 2. Prüfung: Haben wir jetzt beide ausgewählt?
+        if (selectedVerb && selectedDef) {
+            checkMatch();
+        }
+    }
+
+    function checkMatch() {
+        const verbId = selectedVerb.dataset.id;
+        const defId = selectedDef.dataset.id;
+
+        if (verbId === defId) {
+            // MATCH!
+            successAnimation(selectedVerb, selectedDef);
+            // Auswahl zurücksetzen
+            selectedVerb = null;
+            selectedDef = null;
+        } else {
+            // KEIN MATCH
+            errorAnimation(selectedVerb, selectedDef);
+            // Auswahl zurücksetzen (verzögert, damit man den Fehler sieht)
+            const v = selectedVerb;
+            const d = selectedDef;
+            selectedVerb = null;
+            selectedDef = null;
+            
+            setTimeout(() => {
+                v.classList.remove('selected');
+                d.classList.remove('selected');
+            }, 500);
+        }
+    }
+
+    // --- ANIMATIONEN ---
+    function successAnimation(el1, el2) {
+        el1.classList.remove('selected');
+        el2.classList.remove('selected');
+        
+        el1.classList.add('matched');
+        el2.classList.add('matched');
+    }
+
+    function errorAnimation(el1, el2) {
+        el1.classList.add('shake');
+        el2.classList.add('shake');
+
+        setTimeout(() => {
+            el1.classList.remove('shake');
+            el2.classList.remove('shake');
+        }, 400);
+    }
+
+    // --- LÖSUNG ANZEIGEN ---
+    function solveGame() {
+        // Alle Verben durchgehen
+        const allVerbs = document.querySelectorAll('#col-verbs .item');
+        const allDefs = document.querySelectorAll('#col-defs .item');
+
+        allVerbs.forEach(vBtn => {
+            if (vBtn.classList.contains('matched')) return;
+
+            const id = vBtn.dataset.id;
+            
+            // Finde passendes Def-Element
+            let targetDef = null;
+            allDefs.forEach(dBtn => {
+                if (dBtn.dataset.id === id) targetDef = dBtn;
+            });
+
+            if (targetDef) {
+                successAnimation(vBtn, targetDef);
+            }
+        });
+    }
+
+    // Start beim Laden
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
