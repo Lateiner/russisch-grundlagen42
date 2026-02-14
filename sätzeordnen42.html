@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Logische Reihenfolge (5 Geschichten)</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --accent: #ff4081;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #333;
+            --success: #4caf50;
+            --success-bg: #dcedc8;
+            --error: #f44336;
+            --error-bg: #ffcdd2;
+            --slot-border: #9fa8da;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 100px; /* Platz für Footer */
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 { color: var(--primary); margin: 0 0 10px 0; }
+        .instructions {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            display: inline-block;
+            border-left: 5px solid var(--accent);
+            text-align: left;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            max-width: 600px;
+        }
+
+        /* --- STORY SELECTION --- */
+        .story-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap; /* Wichtig für Mobile bei 5 Buttons */
+        }
+        .story-btn {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .story-btn:hover { background-color: var(--primary-light); }
+        .story-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* --- GAME BOARD --- */
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 750px) {
+            .game-board {
+                grid-template-columns: 1fr 1fr; /* Links: Pool, Rechts: Timeline */
+                align-items: start;
+            }
+        }
+
+        /* --- POOL (Source) --- */
+        .pool-container {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--accent);
+        }
+        .pool-title {
+            font-weight: bold;
+            color: #777;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        .card-pool {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 200px;
+        }
+
+        /* --- TIMELINE (Target) --- */
+        .timeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+            padding-left: 10px;
+        }
+        /* Vertical line for timeline effect */
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 35px; /* Hälfte der Kreisbreite + Padding */
+            top: 25px;
+            bottom: 25px;
+            width: 3px;
+            background: #e0e0e0;
+            z-index: 0;
+        }
+
+        .timeline-step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: 3px solid #f5f5f5; /* Kleiner Rand zur Abhebung von Linie */
+        }
+
+        .dropzone {
+            flex-grow: 1;
+            min-height: 60px;
+            background: #fafafa;
+            border: 2px dashed var(--slot-border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            transition: all 0.2s;
+        }
+
+        .dropzone.highlight {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .dropzone.correct {
+            background: var(--success-bg);
+            border: 2px solid var(--success);
+            border-style: solid;
+        }
+        
+        .dropzone.wrong-anim {
+            animation: shake 0.4s;
+            background: var(--error-bg);
+            border-color: var(--error);
+        }
+
+        /* --- CARDS --- */
+        .card {
+            background: white;
+            border: 1px solid #ccc;
+            border-left: 5px solid var(--primary);
+            padding: 12px 15px;
+            border-radius: 6px;
+            cursor: grab;
+            font-size: 1rem;
+            line-height: 1.4;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            user-select: none;
+            touch-action: none; /* Wichtig für Touch */
+            transition: transform 0.2s, opacity 0.2s, background-color 0.2s;
+        }
+
+        .card:active { cursor: grabbing; transform: scale(0.98); }
+
+        /* Wenn ausgewählt per Klick (für Mobile Tap-to-Move) */
+        .card.selected {
+            background-color: var(--primary-light);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .card.correct-locked {
+            cursor: default;
+            border-left-color: var(--success);
+            background: transparent;
+            box-shadow: none;
+            border: none;
+            padding: 0;
+            font-weight: 500;
+        }
+        
+        /* Hervorhebung der Verben im Text */
+        .verb-highlight {
+            font-weight: bold;
+            color: var(--primary);
+        }
+        .correct-locked .verb-highlight {
+            color: #2e7d32;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* --- FOOTER CONTROLS --- */
+        .footer-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid #ccc;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: var(--primary); }
+        .btn-solve { background-color: #607d8b; }
+
+        @media (max-width: 500px) {
+            .story-btn { flex: 1 1 40%; text-align: center; } /* Buttons breiter auf Handy */
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Logische Reihenfolge</h1>
+        <div class="instructions">
+            Was ist passiert? Ziehe die Sätze in die richtige Reihenfolge (1-4).<br>
+            Achte auf den Sinn der Geschichte.
+        </div>
+    </div>
+
+    <!-- Navigation wird per JS generiert -->
+    <div class="story-nav" id="storyNav"></div>
+
+    <div class="game-board">
+        <!-- LINKES FELD: Durcheinandergewürfelte Sätze -->
+        <div class="pool-container">
+            <div class="pool-title">Sätze (geordnet ziehen)</div>
+            <div class="card-pool" id="sourcePool">
+                <!-- Cards generated by JS -->
+            </div>
+        </div>
+
+        <!-- RECHTES FELD: Zeitleiste -->
+        <div class="timeline-container" id="timelineArea">
+            <!-- Steps generated by JS -->
+        </div>
+    </div>
+</div>
+
+<div class="footer-controls">
+    <button class="btn-reset" onclick="resetStory()">Zurücksetzen</button>
+    <button class="btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+</div>
+
+<script>
+    // --- DATEN (5 Geschichten) ---
+    // Sätze müssen in der KORREKTEN Reihenfolge (1-4) eingegeben werden.
+    const stories = [
+        {
+            title: "Beim Arzt",
+            sentences: [
+                "У меня заболела голова. (Kopfweh bekommen)",
+                "Я <span class='verb-highlight'>записался</span> на приём к врачу. (Angemeldet)",
+                "В кабинете я <span class='verb-highlight'>описал</span> свои симптомы. (Beschrieben)",
+                "Врач <span class='verb-highlight'>выписал</span> мне рецепт. (Verschrieben)"
+            ]
+        },
+        {
+            title: "Die Wohnung",
+            sentences: [
+                "Мы нашли новую квартиру. (Gefunden)",
+                "Мы <span class='verb-highlight'>вписали</span> данные в анкету. (Eingetragen)",
+                "Мы <span class='verb-highlight'>подписали</span> договор. (Unterschrieben)",
+                "Мы <span class='verb-highlight'>выписались</span> из старой квартиры. (Abgemeldet)"
+            ]
+        },
+        {
+            title: "Die Prüfung",
+            sentences: [
+                "Я забыл подготовиться к тесту. (Vergessen zu lernen)",
+                "Я сел рядом с отличником. (Neben den Besten gesetzt)",
+                "Я <span class='verb-highlight'>списал</span> у него все ответы. (Abgeschrieben)",
+                "Учитель поставил мне двойку. (Schlechte Note bekommen)"
+            ]
+        },
+        {
+            title: "YouTube",
+            sentences: [
+                "Я посмотрел интересное видео. (Video geschaut)",
+                "Мне очень понравился контент. (Gefallen)",
+                "Я <span class='verb-highlight'>подписался</span> на этот канал. (Abonniert)",
+                "Я <span class='verb-highlight'>написал</span> добрый комментарий. (Geschrieben)"
+            ]
+        },
+        {
+            title: "Der Aufsatz",
+            sentences: [
+                "Сначала я <span class='verb-highlight'>написал</span> черновик. (Entwurf geschrieben)",
+                "Учитель нашёл много ошибок. (Fehler gefunden)",
+                "Мне пришлось всё <span class='verb-highlight'>переписать</span>. (Umschreiben)",
+                "Наконец я <span class='verb-highlight'>дописал</span> работу. (Zu Ende geschrieben)"
+            ]
+        }
+    ];
+
+    let currentStoryIndex = 0;
+    let draggedElement = null;
+    let selectedElement = null; // Für Klick-Steuerung
+
+    // --- INIT ---
+    function initGame() {
+        createNav();
+        loadStory(0);
+    }
+
+    function createNav() {
+        const nav = document.getElementById('storyNav');
+        nav.innerHTML = '';
+        stories.forEach((story, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'story-btn';
+            btn.textContent = `${i + 1}. ${story.title}`;
+            btn.onclick = () => loadStory(i);
+            nav.appendChild(btn);
+        });
+    }
+
+    // --- STORY LADEN ---
+    function loadStory(index) {
+        currentStoryIndex = index;
+        
+        // Buttons aktualisieren
+        const btns = document.querySelectorAll('.story-btn');
+        btns.forEach((btn, i) => {
+            if(i === index) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        const story = stories[index];
+        const timeline = document.getElementById('timelineArea');
+        const pool = document.getElementById('sourcePool');
+        
+        timeline.innerHTML = '';
+        pool.innerHTML = '';
+
+        // 1. Timeline Slots erstellen (1, 2, 3, 4)
+        story.sentences.forEach((_, i) => {
+            const stepNum = i + 1;
+            const row = document.createElement('div');
+            row.className = 'timeline-step';
+            row.innerHTML = `
+                <div class="step-number">${stepNum}</div>
+                <div class="dropzone" data-step="${stepNum}"></div>
+            `;
+            timeline.appendChild(row);
+        });
+
+        // 2. Karten mischen und im Pool anzeigen
+        const cardsData = story.sentences.map((text, i) => ({ text: text, correctStep: i + 1 }));
+        cardsData.sort(() => 0.5 - Math.random());
+
+        cardsData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = item.text;
+            card.draggable = true;
+            card.dataset.correctStep = item.correctStep;
+            
+            // Drag Events
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+            
+            // Click Event (für mobile Alternative)
+            card.addEventListener('click', (e) => handleCardClick(e, card));
+
+            pool.appendChild(card);
+        });
+
+        // Dropzones aktivieren
+        document.querySelectorAll('.dropzone').forEach(zone => {
+            zone.addEventListener('dragover', handleDragOver);
+            zone.addEventListener('dragleave', handleDragLeave);
+            zone.addEventListener('drop', handleDrop);
+            
+            // Click Event für Ziel (mobile)
+            zone.addEventListener('click', (e) => handleZoneClick(e, zone));
+        });
+    }
+
+    // --- INTERAKTION (DRAG & DROP) ---
+
+    function handleDragStart(e) {
+        if (this.classList.contains('correct-locked')) {
+            e.preventDefault();
+            return;
+        }
+        draggedElement = this;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => this.style.opacity = '0.5', 0);
+    }
+
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        draggedElement = null;
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        // Nur highlighten, wenn leer
+        if (!this.hasChildNodes()) {
+            this.classList.add('highlight');
+        }
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('highlight');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        this.classList.remove('highlight');
+
+        if (!draggedElement) return;
+
+        // Prüfen
+        validateMove(draggedElement, this);
+    }
+
+    // --- INTERAKTION (KLICK / TAP) ---
+    
+    function handleCardClick(e, card) {
+        if (card.classList.contains('correct-locked')) return;
+
+        // Wenn schon eine andere ausgewählt ist, deselektieren
+        if (selectedElement && selectedElement !== card) {
+            selectedElement.classList.remove('selected');
+        }
+
+        // Toggle Selection
+        if (card.classList.contains('selected')) {
+            card.classList.remove('selected');
+            selectedElement = null;
+        } else {
+            card.classList.add('selected');
+            selectedElement = card;
+        }
+    }
+
+    function handleZoneClick(e, zone) {
+        if (!selectedElement) return;
+        
+        // Wenn Zone nicht leer ist, nichts tun
+        if (zone.hasChildNodes()) return;
+
+        validateMove(selectedElement, zone);
+        
+        // Selection clearen
+        if (selectedElement) {
+            selectedElement.classList.remove('selected');
+            selectedElement = null;
+        }
+    }
+
+    // --- VALIDIERUNG ---
+
+    function validateMove(card, zone) {
+        const correctStep = parseInt(card.dataset.correctStep);
+        const targetStep = parseInt(zone.dataset.step);
+
+        if (correctStep === targetStep) {
+            // RICHTIG
+            zone.appendChild(card);
+            card.classList.add('correct-locked');
+            card.draggable = false;
+            zone.classList.add('correct');
+        } else {
+            // FALSCH
+            zone.classList.add('wrong-anim');
+            setTimeout(() => zone.classList.remove('wrong-anim'), 400);
+            
+            // Auf Mobile Feedback geben
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+    }
+
+    // --- STEUERUNG ---
+
+    function resetStory() {
+        loadStory(currentStoryIndex);
+    }
+
+    function showSolution() {
+        // Wir setzen die Story neu, aber in korrekter Reihenfolge
+        const story = stories[currentStoryIndex];
+        const timeline = document.getElementById('timelineArea');
+        const pool = document.getElementById('sourcePool');
+        
+        pool.innerHTML = ''; // Leeren
+        timeline.innerHTML = ''; // Leeren
+
+        story.sentences.forEach((text, i) => {
+            const stepNum = i + 1;
+            
+            // Karte erstellen (direkt gelöst)
+            const card = document.createElement('div');
+            card.className = 'card correct-locked';
+            card.innerHTML = text;
+            
+            // Zone erstellen
+            const row = document.createElement('div');
+            row.className = 'timeline-step';
+            
+            const zone = document.createElement('div');
+            zone.className = 'dropzone correct';
+            zone.dataset.step = stepNum;
+            zone.appendChild(card); // Karte direkt reinlegen
+
+            row.innerHTML = `<div class="step-number">${stepNum}</div>`;
+            row.appendChild(zone);
+            
+            timeline.appendChild(row);
+        });
+    }
+
+    // Start
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
