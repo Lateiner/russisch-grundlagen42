@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Was passt nicht?</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --accent: #ff4081;
+            --bg: #f4f6f8;
+            --card-bg: #ffffff;
+            --text: #333;
+            --success: #4caf50;
+            --success-bg: #dcedc8;
+            --error: #f44336;
+            --error-bg: #ffcdd2;
+            --border: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 80px; /* Platz für Footer */
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* --- HEADER --- */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: inline-block;
+            text-align: left;
+            border-left: 5px solid var(--accent);
+            max-width: 800px;
+        }
+
+        /* --- GRID LAYOUT --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* --- CARD STYLES --- */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, opacity 0.3s;
+            border: 1px solid transparent;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Wenn Karte gelöst ist */
+        .card.solved {
+            border-color: var(--success);
+            background-color: #f1f8e9;
+        }
+
+        .verb-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 5px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .verb-translation {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #777;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .option-btn {
+            background: #f9f9f9;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 15px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1rem;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            background: #eef2ff;
+            border-color: #cbd5e1;
+        }
+
+        /* --- FEEDBACK CLASSES --- */
+        
+        /* Richtig: Das war der Odd One Out */
+        .option-btn.correct {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success) !important;
+            color: #1b5e20;
+            font-weight: bold;
+            cursor: default;
+        }
+        .option-btn.correct::after {
+            content: '✓ Richtig (Passt nicht)';
+            font-size: 0.85em;
+        }
+
+        /* Falsch: Das Wort passt eigentlich */
+        .option-btn.wrong {
+            background-color: var(--error-bg) !important;
+            border-color: var(--error) !important;
+            color: #b71c1c;
+            animation: shake 0.4s;
+            cursor: default;
+        }
+        .option-btn.wrong::after {
+            content: '✗ Falsch (Passt gut)';
+            font-size: 0.85em;
+        }
+
+        /* Deaktiviert (für die anderen Optionen nach Lösung) */
+        .option-btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Lösung anzeigen (Highlight) */
+        .option-btn.reveal {
+            border-color: var(--accent) !important;
+            background-color: #fff0f5 !important;
+            font-weight: bold;
+        }
+        .option-btn.reveal::after {
+            content: '← Das passt nicht';
+            color: var(--accent);
+            font-size: 0.85em;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* --- FOOTER CONTROLS --- */
+        .footer-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid #ccc;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 1rem;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:active { transform: scale(0.96); }
+
+        .btn-reset { background-color: var(--primary); }
+        .btn-solve { background-color: #607d8b; }
+
+        @media (max-width: 600px) {
+            .footer-controls { gap: 10px; padding: 10px; }
+            button { width: 45%; padding: 12px 10px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Was passt NICHT?</h1>
+        <div class="instructions">
+            <strong>Aufgabe:</strong> Klicke in jedem Kasten auf das Wort, das <u>nicht</u> zum Verb passt.<br>
+            Du erhältst sofort Feedback.
+        </div>
+    </header>
+
+    <div class="grid" id="quizGrid">
+        <!-- Cards generated by JS -->
+    </div>
+</div>
+
+<div class="footer-controls">
+    <button class="btn-reset" onclick="initQuiz()">Alles zurücksetzen</button>
+    <button class="btn-solve" onclick="showSolution()">Alle Lösungen anzeigen</button>
+</div>
+
+<script>
+    // --- DATEN ---
+    const quizData = [
+        {
+            verb: "записаться",
+            trans: "sich anmelden / einschreiben",
+            options: ["к врачу (zum Arzt)", "на курс (in den Kurs)", "письмо (einen Brief)"],
+            oddIndex: 2
+        },
+        {
+            verb: "подписать",
+            trans: "unterschreiben",
+            options: ["на канал (den Kanal)", "договор (den Vertrag)", "открытку (die Karte)"],
+            oddIndex: 0 // 'auf den Kanal' verlangt 'подписаться'
+        },
+        {
+            verb: "списать",
+            trans: "abschreiben / schummeln",
+            options: ["домашнее задание (Hausaufgabe)", "у соседа (beim Nachbarn)", "своё имя (seinen Namen)"],
+            oddIndex: 2 // 'Namen' unterschreibt man (подписать)
+        },
+        {
+            verb: "выписать",
+            trans: "ausstellen / entlassen",
+            options: ["пациента (den Patienten)", "лекарство (Medikament)", "стену (die Wand)"],
+            oddIndex: 2
+        },
+        {
+            verb: "вписать",
+            trans: "eintragen / hineinschreiben",
+            options: ["правильный ответ (Antwort)", "свои данные (Daten)", "из текста (aus dem Text)"],
+            oddIndex: 2 // 'aus dem Text' ist выписать
+        },
+        {
+            verb: "расписаться",
+            trans: "unterschreiben (Empfang/Heirat)",
+            options: ["в паспорте (im Pass)", "в ЗАГСе (im Standesamt)", "красивую картину (ein Bild)"],
+            oddIndex: 2 
+        },
+        {
+            verb: "описать",
+            trans: "beschreiben",
+            options: ["преступника (den Täter)", "ситуацию (Situation)", "рецепт (ein Rezept)"],
+            oddIndex: 2 // Rezept verschreibt man (выписать)
+        },
+        {
+            verb: "переписать",
+            trans: "neu schreiben / umschreiben",
+            options: ["тест (den Test)", "упражнение (Übung)", "к врачу (zum Arzt)"],
+            oddIndex: 2 // zum Arzt meldet man sich an (записаться)
+        },
+        {
+            verb: "дописать",
+            trans: "zu Ende schreiben",
+            options: ["предложение (den Satz)", "роман (den Roman)", "на экзамене (bei der Prüfung)"],
+            oddIndex: 2 // bei Prüfung schreibt man ab (списать)
+        },
+        {
+            verb: "надписать",
+            trans: "beschriften / drüber schreiben",
+            options: ["конверт (den Umschlag)", "коробку (die Schachtel)", "в чате (im Chat)"],
+            oddIndex: 2 // im Chat schreibt man (переписываться)
+        },
+        {
+            verb: "подписаться",
+            trans: "abonnieren",
+            options: ["документ (das Dokument)", "на журнал (die Zeitschrift)", "на блогера (den Blogger)"],
+            oddIndex: 0 // Dokument unterschreibt man (подписать)
+        },
+        {
+             verb: "написать",
+             trans: "schreiben (einen Text erstellen)",
+             options: ["письмо (einen Brief)", "книгу (ein Buch)", "у соседа (beim Nachbarn)"],
+             oddIndex: 2
+        }
+    ];
+
+    // --- INITIALISIERUNG ---
+    const grid = document.getElementById('quizGrid');
+
+    function initQuiz() {
+        grid.innerHTML = '';
+        
+        quizData.forEach((item, index) => {
+            const oddString = item.options[item.oddIndex];
+            
+            // Kopie erstellen und mischen
+            let shuffledOptions = [...item.options];
+            shuffledOptions.sort(() => 0.5 - Math.random());
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${index}`;
+
+            let html = `
+                <div class="verb-title">${item.verb}</div>
+                <div class="verb-translation">${item.trans}</div>
+                <div class="options-list">
+            `;
+
+            shuffledOptions.forEach(opt => {
+                const isOdd = (opt === oddString);
+                // Onclick Event direkt hier binden
+                html += `<div class="option-btn" onclick="handleOptionClick(this, ${isOdd})">${opt}</div>`;
+            });
+
+            html += `</div>`;
+            card.innerHTML = html;
+            grid.appendChild(card);
+        });
+    }
+
+    // --- INTERAKTION (SOFORTIGES FEEDBACK) ---
+    
+    window.handleOptionClick = function(btn, isOdd) {
+        // Prüfen, ob die Karte schon gelöst oder der Button deaktiviert ist
+        if (btn.classList.contains('disabled') || btn.closest('.card').classList.contains('solved')) {
+            return;
+        }
+
+        if (isOdd) {
+            // Richtig! (Der Nutzer hat das unpassende Wort gefunden)
+            btn.classList.add('correct');
+            
+            // Karte als gelöst markieren
+            const card = btn.closest('.card');
+            card.classList.add('solved');
+            
+            // Andere Buttons deaktivieren
+            const siblings = card.querySelectorAll('.option-btn');
+            siblings.forEach(sibling => {
+                if (sibling !== btn) sibling.classList.add('disabled');
+            });
+
+        } else {
+            // Falsch! (Das Wort passt eigentlich)
+            btn.classList.add('wrong');
+            // Button deaktivieren, damit man ihn nicht nochmal klickt
+            btn.classList.add('disabled');
+        }
+    }
+
+    // --- SOLUTION ---
+
+    window.showSolution = function() {
+        // Wir iterieren durch alle Karten
+        const cards = document.querySelectorAll('.card');
+        
+        cards.forEach(card => {
+            // Wenn Karte schon gelöst ist, überspringen
+            if (card.classList.contains('solved')) return;
+
+            // Karte sperren
+            card.classList.add('solved');
+
+            const buttons = card.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                // Wir müssen prüfen, ob der Button der "Odd One" ist. 
+                // Da wir das onclick-Attribut haben, können wir es parsen oder wir hätten es speichern sollen.
+                // Trick: Wir schauen ins HTML onclick attribute string.
+                const isOddStr = btn.getAttribute('onclick'); 
+                // onclick="handleOptionClick(this, true)" -> true ist odd
+                
+                if (isOddStr.includes('true')) {
+                    btn.classList.add('reveal');
+                } else {
+                    btn.classList.add('disabled');
+                }
+            });
+        });
+    }
+
+    // Start
+    initQuiz();
+
+</script>
+
+</body>
+</html>
