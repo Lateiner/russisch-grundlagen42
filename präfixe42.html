@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Präfix-Baukasten</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-dark: #303f9f;
+            --accent: #ff4081;
+            --bg: #eef2f5;
+            --card-bg: #ffffff;
+            --text: #333;
+            --success: #4caf50;
+            --error: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        .subtitle { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
+
+        /* --- STAGE (The Sentence) --- */
+        .stage {
+            padding: 40px 20px;
+            text-align: center;
+            background: #fff;
+            flex-grow: 1;
+        }
+
+        .german-sentence {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .target-word {
+            font-weight: bold;
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .russian-sentence-container {
+            font-size: 1.6rem;
+            font-weight: 500;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* --- THE DROPZONE SLOT --- */
+        .word-construction {
+            display: inline-flex;
+            align-items: center;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 5px;
+            border: 2px solid #ddd;
+        }
+
+        .drop-slot {
+            width: 70px;
+            height: 50px;
+            background-color: #fff;
+            border: 2px dashed #bbb;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 2px;
+            transition: all 0.2s;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .drop-slot.highlight {
+            background-color: #e8eaf6;
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .drop-slot.filled {
+            border-style: solid;
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .drop-slot.correct {
+            background-color: var(--success);
+            border-color: var(--success);
+        }
+
+        .drop-slot.wrong {
+            background-color: var(--error);
+            border-color: var(--error);
+            animation: shake 0.4s;
+        }
+
+        /* --- PREFIX POOL --- */
+        .pool-area {
+            background: #fafafa;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .pool-label {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .prefix-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .prefix-tile {
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: grab;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+            touch-action: none;
+        }
+
+        .prefix-tile:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+        
+        .prefix-tile.used {
+            opacity: 0.3;
+            pointer-events: none;
+            border-color: #ccc;
+            color: #ccc;
+        }
+
+        /* --- FEEDBACK & NAV --- */
+        .feedback-box {
+            height: 40px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .nav-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none; /* hidden by default */
+            margin: 0 auto;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* --- FOOTER CONTROLS --- */
+        .footer-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid #ccc;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .ctrl-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-reset { background-color: var(--accent); }
+        .btn-solve { background-color: #607d8b; }
+
+        @media (max-width: 500px) {
+            .russian-sentence-container { font-size: 1.2rem; }
+            .prefix-tile { padding: 8px 12px; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Präfix-Baukasten</h1>
+        <div class="subtitle">Baue das russische Verb für die gesuchte Bedeutung</div>
+    </div>
+
+    <!-- MAIN GAME AREA -->
+    <div class="stage" id="stageArea">
+        <!-- German Sentence -->
+        <div class="german-sentence" id="germanText">
+            Lade Frage...
+        </div>
+
+        <!-- Russian Sentence Construction -->
+        <div class="russian-sentence-container">
+            <span id="textPre">Он</span>
+            <div class="word-construction">
+                <div class="drop-slot" id="dropSlot"></div>
+                <span id="textRoot">писывает</span>
+            </div>
+            <span id="textPost">письмо.</span>
+        </div>
+
+        <!-- Feedback Area -->
+        <div class="feedback-box" id="feedbackMsg"></div>
+        <button class="nav-btn" id="nextBtn" onclick="nextQuestion()">Nächste Frage ➜</button>
+    </div>
+
+    <!-- PREFIX POOL -->
+    <div class="pool-area">
+        <div class="pool-label">Ziehe das Präfix in die Lücke</div>
+        <div class="prefix-grid" id="prefixPool">
+            <!-- Prefixes generated by JS -->
+        </div>
+    </div>
+</div>
+
+<div class="footer-controls">
+    <button class="ctrl-btn btn-reset" onclick="resetLevel()">Frage zurücksetzen</button>
+    <button class="ctrl-btn btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+</div>
+
+<script>
+    // --- DATEN ---
+    // Wir definieren 12 Beispiele.
+    // prefix: Das richtige Präfix
+    // root: Der Wortstamm (variiert zw. 'писывает', 'писал', 'пишите')
+    // pre: Text vor dem Verb
+    // post: Text nach dem Verb
+    // german: Der deutsche Satz mit hervorgehobenem Ziel
+    const levels = [
+        {
+            prefix: "до",
+            root: "писывает",
+            pre: "Он",
+            post: "письмо.",
+            german: "Er schreibt den Brief <span class='target-word'>zu Ende</span>."
+        },
+        {
+            prefix: "с",
+            root: "писал",
+            pre: "Студент",
+            post: "на экзамене.",
+            german: "Der Student hat bei der Prüfung <span class='target-word'>abgeschrieben</span>."
+        },
+        {
+            prefix: "под",
+            root: "пишите",
+            pre: "Пожалуйста,",
+            post: "здесь.",
+            german: "Bitte <span class='target-word'>unterschreiben</span> Sie hier."
+        },
+        {
+            prefix: "вы",
+            root: "пишет",
+            pre: "Врач",
+            post: "рецепт.",
+            german: "Der Arzt <span class='target-word'>stellt</span> ein Rezept <span class='target-word'>aus</span>."
+        },
+        {
+            prefix: "за",
+            root: "пиши",
+            pre: "Быстро",
+            post: "мой адрес!",
+            german: "<span class='target-word'>Notiere</span> schnell meine Adresse!"
+        },
+        {
+            prefix: "пере",
+            root: "писываемся",
+            pre: "Мы часто",
+            post: "в чате.",
+            german: "Wir <span class='target-word'>schreiben uns</span> (chatten) oft."
+        },
+        {
+            prefix: "в",
+            root: "пишите",
+            pre: "",
+            post: "правильное слово.",
+            german: "<span class='target-word'>Tragen</span> Sie das richtige Wort <span class='target-word'>ein</span>."
+        },
+        {
+            prefix: "на",
+            root: "писал",
+            pre: "Пушкин",
+            post: "много стихов.",
+            german: "Puschkin hat viele Gedichte <span class='target-word'>geschrieben</span>."
+        },
+        {
+            prefix: "рас",
+            root: "писались",
+            pre: "Они",
+            post: "вчера в ЗАГСе.",
+            german: "Sie haben gestern standesamtlich <span class='target-word'>geheiratet</span>."
+        },
+        {
+            prefix: "о",
+            root: "пишите",
+            pre: "",
+            post: "преступника.",
+            german: "<span class='target-word'>Beschreiben</span> Sie den Täter."
+        },
+        {
+            prefix: "над",
+            root: "писать",
+            pre: "Надо",
+            post: "конверт.",
+            german: "Man muss den Umschlag <span class='target-word'>beschriften</span>."
+        },
+        {
+            prefix: "при",
+            root: "писал",
+            pre: "В конце он",
+            post: "ещё пару строк.",
+            german: "Am Ende <span class='target-word'>fügte</span> er noch ein paar Zeilen <span class='target-word'>hinzu</span>."
+        }
+    ];
+
+    // Liste aller möglichen Präfixe für den Pool (inkl. Distraktoren falls nötig, hier nehmen wir alle korrekten + ein paar gängige)
+    const allPrefixes = ["до", "с", "под", "вы", "за", "пере", "в", "на", "рас", "о", "над", "при", "по", "от", "у"];
+
+    let currentLevelIdx = 0;
+    let draggedPrefix = null;
+    let isSolved = false;
+
+    // --- INIT ---
+    function initGame() {
+        currentLevelIdx = 0;
+        loadLevel(currentLevelIdx);
+        generatePool();
+    }
+
+    // --- LOAD LEVEL ---
+    function loadLevel(idx) {
+        if (idx >= levels.length) {
+            // End screen could go here
+            idx = 0; // Loop for now
+            currentLevelIdx = 0;
+        }
+
+        const data = levels[idx];
+        isSolved = false;
+
+        document.getElementById('germanText').innerHTML = data.german;
+        document.getElementById('textPre').textContent = data.pre;
+        document.getElementById('textRoot').textContent = data.root;
+        document.getElementById('textPost').textContent = data.post;
+        
+        // Reset slot
+        const slot = document.getElementById('dropSlot');
+        slot.textContent = '';
+        slot.className = 'drop-slot'; // Reset classes
+        slot.removeAttribute('data-correct'); // Remove lock
+
+        // Feedback reset
+        document.getElementById('feedbackMsg').textContent = '';
+        document.getElementById('feedbackMsg').style.color = '#333';
+        document.getElementById('nextBtn').style.display = 'none';
+
+        // Enable all pool items
+        document.querySelectorAll('.prefix-tile').forEach(tile => {
+            tile.classList.remove('used');
+            tile.draggable = true;
+        });
+    }
+
+    // --- POOL GENERATION ---
+    function generatePool() {
+        const container = document.getElementById('prefixPool');
+        container.innerHTML = '';
+        
+        // Mischen
+        const shuffled = [...allPrefixes].sort(() => 0.5 - Math.random());
+
+        shuffled.forEach(pref => {
+            const div = document.createElement('div');
+            div.className = 'prefix-tile';
+            div.textContent = pref;
+            div.draggable = true;
+            div.dataset.val = pref;
+
+            div.addEventListener('dragstart', handleDragStart);
+            div.addEventListener('dragend', handleDragEnd);
+            
+            // Click handler für mobile/desktop ohne drag
+            div.addEventListener('click', () => handleTileClick(pref, div));
+
+            container.appendChild(div);
+        });
+    }
+
+    // --- INTERACTION LOGIC ---
+
+    // Drag
+    function handleDragStart(e) {
+        if (isSolved) {
+            e.preventDefault();
+            return;
+        }
+        draggedPrefix = this.dataset.val;
+        e.dataTransfer.effectAllowed = 'copy';
+        this.style.opacity = '0.5';
+    }
+
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        draggedPrefix = null;
+    }
+
+    // Dropzone logic
+    const dropSlot = document.getElementById('dropSlot');
+
+    dropSlot.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (!isSolved) dropSlot.classList.add('highlight');
+    });
+
+    dropSlot.addEventListener('dragleave', () => {
+        dropSlot.classList.remove('highlight');
+    });
+
+    dropSlot.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropSlot.classList.remove('highlight');
+        if (isSolved) return;
+        
+        if (draggedPrefix) {
+            checkAnswer(draggedPrefix);
+        }
+    });
+
+    // Fallback click logic
+    function handleTileClick(pref, tileElement) {
+        if (isSolved) return;
+        checkAnswer(pref);
+    }
+
+    // --- VALIDATION ---
+    function checkAnswer(inputPrefix) {
+        const correctPrefix = levels[currentLevelIdx].prefix;
+        const slot = document.getElementById('dropSlot');
+        
+        slot.textContent = inputPrefix;
+        slot.classList.add('filled');
+
+        if (inputPrefix === correctPrefix) {
+            // Richtig
+            slot.classList.remove('wrong');
+            slot.classList.add('correct');
+            document.getElementById('feedbackMsg').textContent = 'Richtig! Der Satz ist komplett.';
+            document.getElementById('feedbackMsg').style.color = 'var(--success)';
+            
+            isSolved = true;
+            document.getElementById('nextBtn').style.display = 'block';
+
+        } else {
+            // Falsch
+            slot.classList.add('wrong');
+            document.getElementById('feedbackMsg').textContent = 'Falsch. Versuch es nochmal!';
+            document.getElementById('feedbackMsg').style.color = 'var(--error)';
+            
+            // Animation reset
+            setTimeout(() => slot.classList.remove('wrong'), 500);
+        }
+    }
+
+    // --- CONTROLS ---
+    function nextQuestion() {
+        currentLevelIdx++;
+        loadLevel(currentLevelIdx);
+    }
+
+    window.resetLevel = function() {
+        loadLevel(currentLevelIdx);
+    }
+
+    window.showSolution = function() {
+        if (isSolved) return;
+        const correct = levels[currentLevelIdx].prefix;
+        
+        const slot = document.getElementById('dropSlot');
+        slot.textContent = correct;
+        slot.className = 'drop-slot filled correct'; // Force visuals
+        
+        document.getElementById('feedbackMsg').textContent = 'Lösung angezeigt.';
+        document.getElementById('feedbackMsg').style.color = '#666';
+        
+        isSolved = true;
+        document.getElementById('nextBtn').style.display = 'block';
+    }
+
+    // Start
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
