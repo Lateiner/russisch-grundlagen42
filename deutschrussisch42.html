@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Übersetzung üben</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-dark: #303f9f;
+            --accent: #ff4081;
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text: #333;
+            --success: #4caf50;
+            --error: #f44336;
+            --slot-border: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 100px; /* Platz für Footer */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            min-height: 100vh; /* Auf Mobile Fullscreen */
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 600px) {
+            .container {
+                margin: 20px;
+                border-radius: 16px;
+                min-height: auto;
+            }
+        }
+
+        /* --- HEADER --- */
+        .header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 { margin: 0; color: var(--primary); font-size: 1.4rem; }
+        
+        .progress-bar {
+            height: 6px;
+            background: #eee;
+            margin-top: 15px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* --- TASK AREA --- */
+        .task-area {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .german-sentence {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #444;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            margin-bottom: 10px;
+        }
+
+        /* --- ANSWER SLOT --- */
+        .answer-line {
+            min-height: 70px;
+            border-bottom: 2px solid var(--primary);
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            transition: border-color 0.3s, background-color 0.3s;
+            border-radius: 8px 8px 0 0;
+            background-color: #fcfcfc;
+        }
+
+        .answer-line.correct {
+            border-bottom-color: var(--success);
+            background-color: #e8f5e9;
+        }
+
+        .answer-line.wrong {
+            border-bottom-color: var(--error);
+            background-color: #ffebee;
+            animation: shake 0.4s;
+        }
+
+        .placeholder-text {
+            color: #ccc;
+            font-style: italic;
+            pointer-events: none;
+        }
+
+        /* --- WORD POOL --- */
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 12px;
+            min-height: 120px;
+        }
+
+        /* --- WORD BUBBLES --- */
+        .word-btn {
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: var(--text);
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s, background-color 0.2s, opacity 0.2s;
+            font-weight: 500;
+        }
+
+        .word-btn:active { transform: scale(0.95); }
+        .word-btn:hover { border-color: var(--primary); background-color: #eef2ff; }
+
+        /* Animation beim Bewegen */
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .word-btn { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* Feedback Message */
+        .feedback {
+            text-align: center;
+            font-weight: bold;
+            min-height: 24px;
+            margin-top: 10px;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* --- FOOTER CONTROLS --- */
+        .footer-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            border-top: 1px solid #ccc;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.96); }
+
+        .btn-check { background-color: var(--success); min-width: 120px; }
+        .btn-reset { background-color: var(--primary); }
+        .btn-solve { background-color: #607d8b; }
+        .btn-next { background-color: var(--accent); display: none; }
+
+        @media (max-width: 600px) {
+            .german-sentence { font-size: 1.1rem; padding: 10px; }
+            .word-btn { padding: 8px 12px; font-size: 0.95rem; }
+            .footer-controls { padding: 10px; gap: 10px; }
+            button { flex: 1; font-size: 0.9rem; padding: 12px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Übersetzung (DE → RU)</h1>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="task-area">
+        <div class="german-sentence" id="germanText">Lade Satz...</div>
+
+        <!-- Antwortbereich -->
+        <div class="answer-line" id="answerSlot">
+            <span class="placeholder-text">Tippe auf die Wörter...</span>
+        </div>
+
+        <div class="feedback" id="feedbackMsg"></div>
+
+        <!-- Wort Pool -->
+        <div class="word-pool" id="wordPool">
+            <!-- Buttons via JS -->
+        </div>
+    </div>
+</div>
+
+<div class="footer-controls">
+    <button class="btn-reset" onclick="resetLevel()">Reset</button>
+    <button class="btn-check" id="checkBtn" onclick="checkAnswer()">Prüfen</button>
+    <button class="btn-solve" id="solveBtn" onclick="showSolution()">Lösung</button>
+    <button class="btn-next" id="nextBtn" onclick="nextLevel()">Weiter ➜</button>
+</div>
+
+<script>
+    // --- DATEN ---
+    // correct: Die Wörter in der richtigen Reihenfolge
+    // extra: Falsche Wörter (Distraktoren), die im Pool auftauchen
+    const levels = [
+        {
+            german: "Hast du dich schon für den Tanzkurs angemeldet?",
+            correct: ["Ты", "уже", "записался", "на", "танцы?"],
+            extra: ["подписался", "в", "курс"]
+        },
+        {
+            german: "Ich muss den Vertrag unterschreiben.",
+            correct: ["Я", "должен", "подписать", "договор."],
+            extra: ["расписаться", "надписать", "документ"]
+        },
+        {
+            german: "Der Arzt hat das Rezept ausgestellt.",
+            correct: ["Врач", "выписал", "рецепт."],
+            extra: ["вписал", "список", "записал"]
+        },
+        {
+            german: "Er hat bei der Prüfung abgeschrieben.",
+            correct: ["Он", "списал", "на", "экзамене."],
+            extra: ["расписал", "в", "тесте"]
+        },
+        {
+            german: "Wir schreiben uns (chatten) oft.",
+            correct: ["Мы", "часто", "переписываемся."],
+            extra: ["списываемся", "пишем", "друг"]
+        },
+        {
+            german: "Tragen Sie das Wort ein.",
+            correct: ["Впишите", "слово."],
+            extra: ["Выпишите", "Запишите", "текст"]
+        },
+        {
+            german: "Beschreiben Sie das Bild.",
+            correct: ["Опишите", "картину."],
+            extra: ["Напишите", "Спишите", "фото"]
+        },
+        {
+            german: "Ich habe mich vom Kanal abgemeldet.",
+            correct: ["Я", "отписался", "от", "канала."],
+            extra: ["выписался", "из", "подписался"]
+        },
+        {
+            german: "Sie haben gestern geheiratet.",
+            correct: ["Они", "вчера", "расписались."],
+            extra: ["подписались", "женились", "записались"]
+        },
+        {
+            german: "Schreib den Satz zu Ende!",
+            correct: ["Допиши", "предложение!"],
+            extra: ["Напиши", "Перепиши", "слово"]
+        }
+    ];
+
+    let currentIdx = 0;
+    let isSolved = false;
+
+    // --- INIT ---
+    function initGame() {
+        currentIdx = 0;
+        loadLevel(currentIdx);
+    }
+
+    // --- LEVEL LOAD ---
+    function loadLevel(idx) {
+        if (idx >= levels.length) {
+            alert("Fantastisch! Alle Sätze übersetzt.");
+            currentIdx = 0;
+            idx = 0;
+        }
+
+        const data = levels[idx];
+        isSolved = false;
+
+        // UI Reset
+        document.getElementById('germanText').textContent = data.german;
+        document.getElementById('feedbackMsg').textContent = '';
+        const answerSlot = document.getElementById('answerSlot');
+        answerSlot.className = 'answer-line';
+        answerSlot.innerHTML = '<span class="placeholder-text">Tippe auf die Wörter...</span>';
+
+        // Buttons
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('checkBtn').style.display = 'block';
+        document.getElementById('solveBtn').style.display = 'block';
+        
+        // Progress
+        const pct = (idx / levels.length) * 100;
+        document.getElementById('progressFill').style.width = `${pct}%`;
+
+        // Pool generieren
+        const pool = document.getElementById('wordPool');
+        pool.innerHTML = '';
+
+        // Alle Wörter (richtig + falsch) kombinieren und mischen
+        const allWords = [...data.correct, ...data.extra];
+        allWords.sort(() => 0.5 - Math.random());
+
+        allWords.forEach(word => {
+            const btn = document.createElement('div');
+            btn.className = 'word-btn';
+            btn.textContent = word;
+            btn.onclick = () => handleWordClick(btn);
+            pool.appendChild(btn);
+        });
+    }
+
+    // --- INTERACTION ---
+    function handleWordClick(btn) {
+        if (isSolved) return;
+
+        const pool = document.getElementById('wordPool');
+        const answerSlot = document.getElementById('answerSlot');
+        const placeholder = answerSlot.querySelector('.placeholder-text');
+
+        // Animation kurz resetten
+        btn.style.animation = 'none';
+        btn.offsetHeight; /* trigger reflow */
+        btn.style.animation = 'popIn 0.2s';
+
+        // Logik: Wo ist der Button gerade?
+        if (btn.parentElement === pool) {
+            // Ins Antwortfeld bewegen
+            if (placeholder) placeholder.remove();
+            answerSlot.appendChild(btn);
+        } else {
+            // Zurück in den Pool
+            pool.appendChild(btn);
+            // Placeholder wieder rein, wenn leer
+            if (answerSlot.children.length === 0) {
+                const span = document.createElement('span');
+                span.className = 'placeholder-text';
+                span.textContent = 'Tippe auf die Wörter...';
+                answerSlot.appendChild(span);
+            }
+        }
+        
+        // Feedback resetten bei Änderung
+        answerSlot.className = 'answer-line';
+        document.getElementById('feedbackMsg').textContent = '';
+    }
+
+    // --- CHECK ---
+    function checkAnswer() {
+        if (isSolved) return;
+
+        const answerSlot = document.getElementById('answerSlot');
+        const userWords = Array.from(answerSlot.children)
+            .filter(el => el.classList.contains('word-btn')) // Nur Buttons zählen
+            .map(el => el.textContent);
+
+        const correctWords = levels[currentIdx].correct;
+
+        // Arrays vergleichen
+        const isCorrect = JSON.stringify(userWords) === JSON.stringify(correctWords);
+
+        if (isCorrect) {
+            // Richtig
+            answerSlot.className = 'answer-line correct';
+            document.getElementById('feedbackMsg').textContent = "Perfekt! Das ist richtig.";
+            document.getElementById('feedbackMsg').style.color = 'var(--success)';
+            
+            isSolved = true;
+            document.getElementById('checkBtn').style.display = 'none';
+            document.getElementById('solveBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'block';
+
+        } else {
+            // Falsch
+            answerSlot.className = 'answer-line wrong';
+            document.getElementById('feedbackMsg').textContent = "Das stimmt noch nicht ganz.";
+            document.getElementById('feedbackMsg').style.color = 'var(--error)';
+            
+            // Shake entfernen nach Animation
+            setTimeout(() => {
+                if(!isSolved) answerSlot.className = 'answer-line';
+            }, 500);
+        }
+    }
+
+    // --- HELPER ---
+    function resetLevel() {
+        loadLevel(currentIdx);
+    }
+
+    function showSolution() {
+        const data = levels[currentIdx];
+        const pool = document.getElementById('wordPool');
+        const answerSlot = document.getElementById('answerSlot');
+        
+        // Alles zurücksetzen
+        answerSlot.innerHTML = '';
+        pool.innerHTML = ''; // Pool leeren, wir bauen ihn neu auf für die Reste
+
+        // Richtige Wörter ins Antwortfeld
+        data.correct.forEach(word => {
+            const btn = document.createElement('div');
+            btn.className = 'word-btn';
+            btn.textContent = word;
+            // Wir deaktivieren Klicks, da es die Lösung ist
+            btn.style.cursor = 'default';
+            answerSlot.appendChild(btn);
+        });
+
+        // Falsche Wörter (Distraktoren) in den Pool
+        data.extra.forEach(word => {
+            const btn = document.createElement('div');
+            btn.className = 'word-btn';
+            btn.textContent = word;
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+            pool.appendChild(btn);
+        });
+
+        // Als gelöst markieren
+        answerSlot.className = 'answer-line correct';
+        document.getElementById('feedbackMsg').textContent = "Lösung angezeigt.";
+        document.getElementById('feedbackMsg').style.color = '#555';
+        
+        isSolved = true;
+        document.getElementById('checkBtn').style.display = 'none';
+        document.getElementById('solveBtn').style.display = 'none';
+        document.getElementById('nextBtn').style.display = 'block';
+    }
+
+    function nextLevel() {
+        currentIdx++;
+        loadLevel(currentIdx);
+    }
+
+    // Start
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
