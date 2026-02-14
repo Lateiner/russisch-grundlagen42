@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch Lernkartei: Schreiben & Präfixe</title>
+    <style>
+        :root {
+            /* Farbpalette (Grüntöne) */
+            --bg-color: #e8f5e9;          /* Sehr helles Grün */
+            --primary-color: #2e7d32;     /* Dunkles Grün */
+            --accent-color: #4caf50;      /* Standard Grün */
+            --text-color: #1b5e20;        /* Sehr dunkles Grün für Text */
+            --card-bg: #ffffff;           /* Weiß */
+            --card-back-bg: #f1f8e9;      /* Helles Grün für Rückseite */
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --transition-speed: 0.6s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        /* Fortschrittsanzeige */
+        .progress {
+            font-weight: bold;
+            color: var(--primary-color);
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Karteikarten Container (für 3D Perspektive) */
+        .card-container {
+            background-color: transparent;
+            width: 100%;
+            height: 300px; /* Feste Höhe für Konsistenz */
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        /* Die Karte selbst */
+        .card {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform var(--transition-speed);
+            transform-style: preserve-3d;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        /* Klasse zum Umdrehen */
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* Vorder- und Rückseite */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border: 2px solid var(--primary-color);
+        }
+
+        .card-face.front {
+            background-color: var(--card-bg);
+        }
+
+        .card-face.back {
+            background-color: var(--card-back-bg);
+            transform: rotateY(180deg);
+        }
+
+        /* Textstyling auf der Karte */
+        .card-content {
+            width: 100%;
+            word-wrap: break-word;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        /* Dynamische Schriftgrößen */
+        .text.medium { font-size: 1.4rem; }
+        .text.small { font-size: 1.1rem; }
+
+        /* Bedienungselemente */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .meta-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            flex: 1; /* Buttons nehmen verfügbaren Platz ein */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+        }
+
+        button:active {
+            transform: translateY(2px);
+        }
+
+        button.secondary {
+            background-color: #66bb6a; /* Helleres Grün für Meta-Controls */
+            font-size: 0.9rem;
+            padding: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            h1 { font-size: 1.5rem; }
+            .card-container { height: 260px; }
+            .text { font-size: 1.4rem; }
+            .controls { flex-direction: row; }
+            button { padding: 10px; font-size: 0.9rem; }
+        }
+        
+        /* Hilfstext für Tastatur */
+        .keyboard-hint {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+        }
+        .key-badge {
+            display: inline-block;
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 0 4px;
+            font-family: monospace;
+            margin: 0 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>🇷🇺 Russisch Vokabeln</h1>
+        
+        <div class="progress" id="progress-display">1 / 40</div>
+
+        <div class="card-container" id="flashcard">
+            <div class="card" id="card-inner">
+                <!-- Vorderseite -->
+                <div class="card-face front">
+                    <div class="card-content">
+                        <span class="label">Russisch</span>
+                        <div class="text" id="card-front">Lade...</div>
+                    </div>
+                </div>
+                <!-- Rückseite -->
+                <div class="card-face back">
+                    <div class="card-content">
+                        <span class="label">Deutsch</span>
+                        <div class="text" id="card-back">Lade...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="btn-prev">← Vorherige</button>
+            <button id="btn-flip">Umdrehen ↻</button>
+            <button id="btn-next">Nächste →</button>
+        </div>
+
+        <div class="meta-controls">
+            <button class="secondary" id="btn-reset">⏮ An den Anfang</button>
+            <button class="secondary" id="btn-shuffle">🔀 Mischen</button>
+        </div>
+
+        <div class="keyboard-hint">
+            Tastatur: 
+            <span class="key-badge">←</span> <span class="key-badge">→</span> Navigation, 
+            <span class="key-badge">Leertaste</span> / <span class="key-badge">Enter</span> Umdrehen,
+            <span class="key-badge">Pos1</span> Anfang
+        </div>
+    </div>
+
+<script>
+    // --- DATEN ---
+    // Die Vokabelliste als Array von Strings.
+    const rawData = [
+        "1.	писа́ть / написа́ть – schreiben",
+        "2.	пописа́ть (SV) – kurz schreiben / ein wenig schreiben",
+        "3.	допи́сывать / дописа́ть – zu Ende schreiben / fertig schreiben",
+        "4.	перепи́сывать / переписа́ть – umschreiben / neu schreiben",
+        "5.	перепи́сываться (NSV) – sich schreiben / korrespondieren (z. B. im Chat)",
+        "6.	впи́сывать / вписа́ть – eintragen / hineinschreiben (in eine Lücke/Formular)",
+        "7.	выпи́сывать / вы́писать – herausschreiben / (ein Rezept) verschreiben / entlassen",
+        "8.	выпи́сываться / вы́писаться – sich entlassen lassen (Krankenhaus) / sich abmelden",
+        "9.	запи́сывать / записа́ть – aufschreiben / notieren",
+        "10.	запи́сывать / записа́ть – jemanden anmelden (Termin)",
+        "11.	запи́сываться / записа́ться – sich anmelden / einen Termin vereinbaren",
+        "12.	распи́сывать / расписа́ть – bemalen / verzieren",
+        "13.	распи́сываться / расписа́ться – unterschreiben (Quittung) / standesamtlich heiraten",
+        "14.	припи́сывать / приписа́ть – dazuschreiben / hinzufügen / zuschreiben",
+        "15.	спи́сывать / списа́ть – abschreiben (z. B. in der Prüfung)",
+        "16.	надпи́сывать / надписа́ть – beschriften / darüber schreiben",
+        "17.	подпи́сывать / подписа́ть – unterschreiben (Vertrag)",
+        "18.	подпи́сываться / подписа́ться – abonnieren / unterschreiben",
+        "19.	отпи́сываться / отписа́ться – deabonnieren / sich abmelden",
+        "20.	опи́сывать / описа́ть – beschreiben",
+        "21.	врач – der Arzt",
+        "22.	реце́пт – das Rezept",
+        "23.	больни́ца – das Krankenhaus",
+        "24.	догово́р – der Vertrag",
+        "25.	экза́мен – die Prüfung / das Examen",
+        "26.	сосе́д – der Nachbar",
+        "27.	кана́л – der Kanal (z. B. YouTube)",
+        "28.	ЗАГС – das Standesamt",
+        "29.	заявле́ние – der Antrag / die Erklärung",
+        "30.	письмо́ – der Brief",
+        "31.	сообще́ние – die Nachricht",
+        "32.	пацие́нт – der Patient",
+        "33.	лека́рство – das Medikament",
+        "34.	по́дпись – die Unterschrift",
+        "35.	анке́та – der Fragebogen / das Formular",
+        "36.	чернови́к – der Entwurf / das Konzept",
+        "37.	эссе́ – das Essay",
+        "38.	симпто́м – das Symptom",
+        "39.	кварти́ра – die Wohnung",
+        "40.	рисова́ние – das Malen / Zeichnen"
+    ];
+
+    // --- ZUSTANDSMANAGEMENT ---
+    let cards = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+
+    // --- INITIALISIERUNG ---
+    function init() {
+        parseData();
+        renderCard();
+        setupListeners();
+    }
+
+    // Daten verarbeiten: Nummer entfernen, Trennen bei "–"
+    function parseData() {
+        cards = rawData.map(line => {
+            // Regex: Sucht nach Ziffern+Punkt am Anfang (z.B. "1. "), dann Gruppe 1 (Russisch), dann " – ", dann Gruppe 2 (Deutsch)
+            // Wir nutzen einfaches String-Splitting für Robustheit
+            
+            // 1. Nummer entfernen (alles bis zum ersten Leerzeichen nach dem Punkt)
+            let content = line.replace(/^\d+\.\s+/, "");
+            
+            // 2. Trennen bei " – " (Gedankenstrich) oder " - " (Bindestrich, falls Eingabe variiert)
+            let parts = content.split(/ – | - /);
+            
+            if (parts.length >= 2) {
+                return {
+                    front: parts[0].trim(),
+                    back: parts[1].trim()
+                };
+            }
+            return null;
+        }).filter(item => item !== null); // Ungültige Zeilen entfernen
+    }
+
+    // --- RENDERING & LOGIK ---
+
+    const cardInner = document.getElementById('card-inner');
+    const frontText = document.getElementById('card-front');
+    const backText = document.getElementById('card-back');
+    const progressDisplay = document.getElementById('progress-display');
+
+    function renderCard() {
+        const currentCard = cards[currentIndex];
+        
+        // Karteninhalt setzen
+        frontText.textContent = currentCard.front;
+        backText.textContent = currentCard.back;
+
+        // Schriftgröße anpassen für langen Text
+        adjustFontSize(frontText, currentCard.front);
+        adjustFontSize(backText, currentCard.back);
+
+        // Fortschritt aktualisieren
+        progressDisplay.textContent = `${currentIndex + 1} / ${cards.length}`;
+
+        // Karte zurückdrehen, falls sie umgedreht ist (ohne Animation beim Wechseln der Karte)
+        if (isFlipped) {
+            // Um Flackern zu vermeiden: Wir entfernen die Klasse sofort, 
+            // aber wir möchten, dass beim Wechseln der Karte immer die Vorderseite zuerst zu sehen ist.
+            cardInner.style.transition = 'none'; // Animation kurz ausschalten
+            cardInner.classList.remove('is-flipped');
+            isFlipped = false;
+            
+            // Layout reflow erzwingen
+            void cardInner.offsetWidth; 
+            
+            // Animation wieder einschalten
+            cardInner.style.transition = 'transform var(--transition-speed)';
+        }
+    }
+
+    // Dynamische Schriftgröße basierend auf Länge
+    function adjustFontSize(element, text) {
+        element.className = 'text'; // Reset
+        if (text.length > 50) {
+            element.classList.add('small');
+        } else if (text.length > 25) {
+            element.classList.add('medium');
+        }
+    }
+
+    function flipCard() {
+        isFlipped = !isFlipped;
+        if (isFlipped) {
+            cardInner.classList.add('is-flipped');
+        } else {
+            cardInner.classList.remove('is-flipped');
+        }
+    }
+
+    function nextCard() {
+        if (currentIndex < cards.length - 1) {
+            currentIndex++;
+            renderCard();
+        }
+    }
+
+    function prevCard() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderCard();
+        }
+    }
+
+    function resetToStart() {
+        currentIndex = 0;
+        renderCard();
+    }
+
+    function shuffleCards() {
+        // Fisher-Yates Shuffle
+        for (let i = cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        // Zurück zum Start
+        currentIndex = 0;
+        renderCard();
+    }
+
+    // --- EVENT LISTENERS ---
+
+    function setupListeners() {
+        // Klick auf Karte
+        document.getElementById('flashcard').addEventListener('click', flipCard);
+        
+        // Klick auf Button "Umdrehen" (optional, falls Karte nicht intuitiv)
+        document.getElementById('btn-flip').addEventListener('click', (e) => {
+            e.stopPropagation(); // Verhindert Doppelfeuerung durch Container
+            flipCard();
+        });
+
+        // Navigation Buttons
+        document.getElementById('btn-next').addEventListener('click', nextCard);
+        document.getElementById('btn-prev').addEventListener('click', prevCard);
+        document.getElementById('btn-reset').addEventListener('click', resetToStart);
+        document.getElementById('btn-shuffle').addEventListener('click', shuffleCards);
+
+        // Tastatursteuerung
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case "ArrowRight":
+                    nextCard();
+                    break;
+                case "ArrowLeft":
+                    prevCard();
+                    break;
+                case " ":      // Leertaste
+                case "Enter":
+                    e.preventDefault(); // Verhindert Scrollen bei Leertaste
+                    flipCard();
+                    break;
+                case "Home":
+                    resetToStart();
+                    break;
+            }
+        });
+    }
+
+    // App starten
+    init();
+
+</script>
+
+</body>
+</html>
