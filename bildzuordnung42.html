@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: schreiben (15 Beispiele)</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --success: #4caf50;
+            --success-bg: #e8f5e9;
+            --error: #f44336;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 20px;
+        }
+
+        .instructions {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* --- STICKY WORD POOL --- */
+        .pool-container {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--bg);
+            padding: 10px 0;
+            box-shadow: 0 4px 6px -4px rgba(0,0,0,0.2);
+        }
+
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            min-height: 50px;
+        }
+
+        .draggable {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: grab;
+            font-weight: bold;
+            font-size: 0.95em;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.1s, opacity 0.2s, background-color 0.3s;
+            touch-action: none;
+        }
+
+        .draggable:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+        }
+
+        .draggable.used {
+            opacity: 0.3;
+            pointer-events: none;
+            background-color: #999;
+            text-decoration: line-through;
+        }
+
+        /* --- GRID LAYOUT --- */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s, background-color 0.3s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .emoji {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        .desc {
+            font-size: 0.95em;
+            color: #555;
+            margin-bottom: 15px;
+            flex-grow: 1; /* Damit Buttons unten bündig sind */
+        }
+
+        .dropzone {
+            height: 50px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .dropzone.highlight {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            transform: scale(1.02);
+        }
+
+        /* --- FEEDBACK STATES --- */
+        
+        /* Richtig */
+        .card.success {
+            background-color: var(--success-bg);
+            border-color: var(--success);
+        }
+        
+        .card.success .dropzone {
+            border: none;
+            background: var(--success);
+            color: white;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+        }
+
+        /* Falsch Animation (Shake) */
+        .shake {
+            animation: shake 0.5s;
+            border-color: var(--error);
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        /* --- MENU --- */
+        .menu-bar {
+            margin-top: 40px;
+            text-align: center;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: var(--primary); }
+        .btn-solve { background-color: #607d8b; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>15 Übungen: писать</h1>
+    <div class="instructions">
+        Ziehe das russische Wort auf das passende Bild. <br>
+        <strong>Feedback erfolgt sofort:</strong> Grün = Richtig, Rot = Falsch (versuche es nochmal).
+    </div>
+
+    <!-- Sticky Pool -->
+    <div class="pool-container">
+        <div class="word-pool" id="wordPool">
+            <!-- Wörter werden per JS eingefügt -->
+        </div>
+    </div>
+
+    <!-- Grid für die Karten -->
+    <div class="cards-grid" id="gameGrid">
+        <!-- Karten werden per JS eingefügt -->
+    </div>
+
+    <div class="menu-bar">
+        <button class="btn-reset" onclick="initGame()">Alles Zurücksetzen</button>
+        <button class="btn-solve" onclick="solveGame()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // --- DATEN: Die 15 Beispiele ---
+    const gameData = [
+        { id: '1', verb: 'подписать', emoji: '✍️📄', desc: 'Einen Vertrag unterschreiben.' },
+        { id: '2', verb: 'списать', emoji: '👀🏫', desc: 'In der Prüfung beim Nachbarn abschreiben.' },
+        { id: '3', verb: 'выписать', emoji: '💊👨‍⚕️', desc: 'Der Arzt stellt ein Rezept aus.' },
+        { id: '4', verb: 'записать', emoji: '📝👂', desc: 'Etwas schnell notieren (ein Diktat/Notiz).' },
+        { id: '5', verb: 'вписать', emoji: '🧩✏️', desc: 'Ein fehlendes Wort in eine Lücke eintragen.' },
+        { id: '6', verb: 'переписать', emoji: '🔄📄', desc: 'Den Text nochmal neu (und besser) schreiben.' },
+        { id: '7', verb: 'расписаться', emoji: '💍💒', desc: 'Standesamtlich heiraten (unterschreiben).' },
+        { id: '8', verb: 'подписаться', emoji: '🔔📺', desc: 'Einen YouTube-Kanal abonnieren.' },
+        { id: '9', verb: 'выписаться', emoji: '🏥🏃', desc: 'Sich aus dem Krankenhaus entlassen lassen.' },
+        { id: '10', verb: 'дописать', emoji: '🏁📝', desc: 'Einen Satz oder Text zu Ende schreiben.' },
+        { id: '11', verb: 'описать', emoji: '🗣️👮', desc: 'Beschreiben, wie der Täter aussah.' },
+        { id: '12', verb: 'надписать', emoji: '📦🏷️', desc: 'Etwas oben drauf schreiben (beschriften).' },
+        { id: '13', verb: 'переписываться', emoji: '📱💬', desc: 'Sich Nachrichten schreiben (chatten).' },
+        { id: '14', verb: 'записаться', emoji: '📅🦷', desc: 'Sich einen Termin beim Zahnarzt geben lassen.' },
+        { id: '15', verb: 'написать', emoji: '✉️📮', desc: 'Einen Brief schreiben (und fertigstellen).' }
+    ];
+
+    let draggedElement = null;
+
+    // --- INITIALISIERUNG ---
+    function initGame() {
+        const pool = document.getElementById('wordPool');
+        const grid = document.getElementById('gameGrid');
+        
+        pool.innerHTML = '';
+        grid.innerHTML = '';
+
+        // 1. Daten mischen für die Grid-Positionen
+        const shuffledCards = [...gameData].sort(() => 0.5 - Math.random());
+        // 2. Daten mischen für den Wort-Pool
+        const shuffledWords = [...gameData].sort(() => 0.5 - Math.random());
+
+        // 3. Grid bauen (Karten)
+        shuffledCards.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${item.id}`; // ID merken für Feedback
+
+            card.innerHTML = `
+                <div class="emoji">${item.emoji}</div>
+                <div class="desc">${item.desc}</div>
+                <div class="dropzone" data-target="${item.id}">Hierhin ziehen</div>
+            `;
+            grid.appendChild(card);
+            
+            // Dropzone Event Listener hinzufügen
+            const zone = card.querySelector('.dropzone');
+            addDropEvents(zone);
+        });
+
+        // 4. Pool bauen (Wörter)
+        shuffledWords.forEach(item => {
+            const word = document.createElement('div');
+            word.className = 'draggable';
+            word.draggable = true;
+            word.textContent = item.verb;
+            word.dataset.id = item.id; // Damit wir wissen, wohin es gehört
+            word.id = `drag-${item.id}`;
+
+            // Drag Events
+            word.addEventListener('dragstart', handleDragStart);
+            word.addEventListener('dragend', handleDragEnd);
+            
+            pool.appendChild(word);
+        });
+    }
+
+    // --- DRAG & DROP LOGIK ---
+
+    function handleDragStart(e) {
+        draggedElement = this;
+        e.dataTransfer.effectAllowed = 'move';
+        // Kleiner Timeout für optischen Effekt
+        setTimeout(() => this.style.opacity = '0.5', 0);
+    }
+
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        draggedElement = null;
+    }
+
+    function addDropEvents(zone) {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            // Nur highlighten, wenn die Karte noch nicht gelöst ist
+            if (!this.parentElement.classList.contains('success')) {
+                this.classList.add('highlight');
+            }
+        });
+
+        zone.addEventListener('dragleave', function(e) {
+            this.classList.remove('highlight');
+        });
+
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('highlight');
+
+            if (!draggedElement) return;
+
+            // Ist die Karte schon gelöst? Dann Abbruch.
+            if (this.parentElement.classList.contains('success')) return;
+
+            const targetId = this.dataset.target;
+            const draggedId = draggedElement.dataset.id;
+
+            // SOFORTIGES FEEDBACK LOGIK
+            if (targetId === draggedId) {
+                // RICHTIG
+                handleCorrect(this, draggedElement);
+            } else {
+                // FALSCH
+                handleWrong(this.parentElement);
+            }
+        });
+    }
+
+    // --- FEEDBACK FUNKTIONEN ---
+
+    function handleCorrect(zone, wordEl) {
+        const card = zone.parentElement;
+        
+        // 1. Visuelles Feedback Karte
+        card.classList.add('success');
+        
+        // 2. Text in der Zone ändern
+        zone.textContent = wordEl.textContent;
+        
+        // 3. Wort im Pool "deaktivieren" (durchstreichen)
+        wordEl.classList.add('used');
+        wordEl.draggable = false;
+        
+        // Optional: Kleiner Sound oder Haptik könnte hier rein
+    }
+
+    function handleWrong(card) {
+        // 1. Shake Animation hinzufügen
+        card.classList.add('shake');
+        
+        // 2. Animation entfernen nach Ablauf, damit sie erneut triggern kann
+        setTimeout(() => {
+            card.classList.remove('shake');
+        }, 500);
+    }
+
+    // --- LÖSUNG ANZEIGEN ---
+    function solveGame() {
+        // Wir iterieren durch alle Draggables, die noch nicht "used" sind
+        const unusedWords = document.querySelectorAll('.draggable:not(.used)');
+        
+        unusedWords.forEach(word => {
+            const correctID = word.dataset.id;
+            // Finde die passende Karte
+            const zones = document.querySelectorAll('.dropzone');
+            
+            zones.forEach(zone => {
+                if (zone.dataset.target === correctID && !zone.parentElement.classList.contains('success')) {
+                    handleCorrect(zone, word);
+                }
+            });
+        });
+    }
+
+    // Spiel beim Laden starten
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
