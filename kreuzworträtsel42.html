@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Russisch: Kreuzworträtsel</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --primary-light: #e8eaf6;
+            --accent: #ff4081;
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #333;
+            --success: #4caf50;
+            --success-bg: #dcedc8;
+            --solve-color: #607d8b;
+            --cell-size: 35px; /* Basisgröße */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            /* Verhindert Pull-to-Refresh auf Mobile */
+            overscroll-behavior-y: contain; 
+            padding-bottom: 250px; /* Platz für Keyboard */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h1 { margin: 0; color: var(--primary); font-size: 1.5rem; }
+        .subtitle { font-size: 0.9rem; color: #666; margin-top: 5px; }
+
+        /* --- HINT AREA --- */
+        .hint-box {
+            background: #fff;
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+            border-left: 5px solid var(--accent);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .current-clue-label {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .current-clue-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        /* --- CROSSWORD GRID --- */
+        .grid-wrapper {
+            overflow: auto; /* Scrollen, falls Grid zu groß */
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .cw-grid {
+            display: grid;
+            /* Grid wird per JS definiert */
+            gap: 2px;
+            background-color: #333; /* Rahmenfarbe */
+            border: 2px solid #333;
+            margin: 0 auto;
+        }
+
+        .cell {
+            background-color: #fff;
+            width: var(--cell-size);
+            height: var(--cell-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            text-transform: uppercase;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .cell.black {
+            background-color: #333;
+            pointer-events: none;
+        }
+
+        /* Nummerierung im Kästchen */
+        .cell-num {
+            position: absolute;
+            top: 1px;
+            left: 2px;
+            font-size: 0.55rem;
+            color: #666;
+            pointer-events: none;
+        }
+
+        /* Status Farben */
+        .cell.active {
+            background-color: #fff9c4; /* Gelb für ausgewähltes Wort */
+        }
+        
+        .cell.focused {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .cell.correct {
+            background-color: var(--success-bg);
+            color: #1b5e20;
+        }
+
+        /* --- VIRTUAL KEYBOARD (STICKY FOOTER) --- */
+        .keyboard-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #e0e0e0;
+            padding: 10px 5px;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .kb-row {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .key {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 0 #999;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1rem;
+            height: 45px;
+            min-width: 30px;
+            flex: 1;
+            max-width: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s, background-color 0.1s;
+        }
+
+        .key:active {
+            transform: translateY(2px);
+            box-shadow: none;
+            background-color: #eee;
+        }
+
+        .key-backspace {
+            background-color: #ffccbc;
+        }
+        
+        /* --- CONTROLS --- */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 100px;
+        }
+
+        .btn-check { background: var(--success); }
+        .btn-reset { background: var(--primary); }
+        .btn-solve { background: var(--solve-color); }
+
+        /* Responsive Anpassungen */
+        @media (min-width: 600px) {
+            :root { --cell-size: 45px; }
+            .keyboard-container { padding: 15px; }
+            .key { height: 50px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Verben-Kreuzworträtsel</h1>
+        <div class="subtitle">Fülle das Gitter mit den passenden Verben (kyrillisch).</div>
+    </div>
+
+    <div class="hint-box">
+        <div class="current-clue-label">Hinweis</div>
+        <div class="current-clue-text" id="clueText">Tippe auf ein Wort im Gitter!</div>
+    </div>
+
+    <div class="grid-wrapper">
+        <div id="cwGrid" class="cw-grid"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetGame()">Neustart</button>
+        <button class="btn-check" onclick="checkPuzzle()">Prüfen</button>
+        <button class="btn-solve" onclick="showSolution()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<!-- On-Screen Keyboard -->
+<div class="keyboard-container">
+    <div class="kb-row">
+        <div class="key" onclick="inputChar('Й')">Й</div>
+        <div class="key" onclick="inputChar('Ц')">Ц</div>
+        <div class="key" onclick="inputChar('У')">У</div>
+        <div class="key" onclick="inputChar('К')">К</div>
+        <div class="key" onclick="inputChar('Е')">Е</div>
+        <div class="key" onclick="inputChar('Н')">Н</div>
+        <div class="key" onclick="inputChar('Г')">Г</div>
+        <div class="key" onclick="inputChar('Ш')">Ш</div>
+        <div class="key" onclick="inputChar('Щ')">Щ</div>
+        <div class="key" onclick="inputChar('З')">З</div>
+        <div class="key" onclick="inputChar('Х')">Х</div>
+    </div>
+    <div class="kb-row">
+        <div class="key" onclick="inputChar('Ф')">Ф</div>
+        <div class="key" onclick="inputChar('Ы')">Ы</div>
+        <div class="key" onclick="inputChar('В')">В</div>
+        <div class="key" onclick="inputChar('А')">А</div>
+        <div class="key" onclick="inputChar('П')">П</div>
+        <div class="key" onclick="inputChar('Р')">Р</div>
+        <div class="key" onclick="inputChar('О')">О</div>
+        <div class="key" onclick="inputChar('Л')">Л</div>
+        <div class="key" onclick="inputChar('Д')">Д</div>
+        <div class="key" onclick="inputChar('Ж')">Ж</div>
+        <div class="key" onclick="inputChar('Э')">Э</div>
+    </div>
+    <div class="kb-row">
+        <div class="key" onclick="inputChar('Я')">Я</div>
+        <div class="key" onclick="inputChar('Ч')">Ч</div>
+        <div class="key" onclick="inputChar('С')">С</div>
+        <div class="key" onclick="inputChar('М')">М</div>
+        <div class="key" onclick="inputChar('И')">И</div>
+        <div class="key" onclick="inputChar('Т')">Т</div>
+        <div class="key" onclick="inputChar('Ь')">Ь</div>
+        <div class="key" onclick="inputChar('Б')">Б</div>
+        <div class="key" onclick="inputChar('Ю')">Ю</div>
+        <div class="key key-backspace" onclick="inputBackspace()">⌫</div>
+    </div>
+</div>
+
+<script>
+    // --- DATEN & KONFIGURATION ---
+    // Grid: 11x10
+    const rows = 10;
+    const cols = 11;
+    
+    // Word Definitions
+    const words = [
+        {
+            id: 1,
+            word: "ЗАПИСАТЬ",
+            clue: "Notieren / Sich anmelden (etwas notieren)",
+            x: 0, y: 1, dir: 'h'
+        },
+        {
+            id: 2,
+            word: "СПИСАТЬ",
+            clue: "Abschreiben (in der Prüfung)",
+            x: 2, y: 0, dir: 'v'
+        },
+        {
+            id: 3,
+            word: "ОПИСАТЬ",
+            clue: "Beschreiben (jemanden/etwas)",
+            x: 4, y: 1, dir: 'v'
+        },
+        {
+            id: 4,
+            word: "ВЫПИСАТЬ",
+            clue: "Verschreiben (Rezept) / Entlassen (Krankenhaus)",
+            x: 3, y: 4, dir: 'h'
+        },
+        {
+            id: 5,
+            word: "ПОДПИСАТЬ",
+            clue: "Unterschreiben / Abonnieren",
+            x: 8, y: 1, dir: 'v'
+        },
+        {
+            id: 6,
+            word: "ПЕРЕПИСАТЬ",
+            clue: "Neu schreiben / Umschreiben",
+            x: 0, y: 8, dir: 'h'
+        }
+    ];
+
+    // State
+    let activeWord = null; // Current word object
+    let cursorPosition = 0; // Index within the active word
+    
+    // --- INIT ---
+    function initGame() {
+        const gridEl = document.getElementById('cwGrid');
+        
+        // CSS Grid Template setzen
+        gridEl.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+        gridEl.style.gridTemplateRows = `repeat(${rows}, var(--cell-size))`;
+
+        // Gitterzellen erstellen
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell black'; // Standardmäßig schwarz
+                cell.id = `cell-${c}-${r}`;
+                cell.dataset.x = c;
+                cell.dataset.y = r;
+                
+                // Klick-Handler
+                cell.addEventListener('click', () => handleCellClick(c, r));
+                
+                gridEl.appendChild(cell);
+            }
+        }
+
+        // Wörter im Gitter platzieren (weiß machen & Nummern)
+        words.forEach(w => {
+            for (let i = 0; i < w.word.length; i++) {
+                let cx = w.x + (w.dir === 'h' ? i : 0);
+                let cy = w.y + (w.dir === 'v' ? i : 0);
+                
+                const cell = document.getElementById(`cell-${cx}-${cy}`);
+                cell.className = 'cell'; // Weiß machen
+                
+                // Wenn es der Anfang ist, Nummer hinzufügen
+                if (i === 0) {
+                    const num = document.createElement('span');
+                    num.className = 'cell-num';
+                    num.textContent = w.id;
+                    cell.appendChild(num);
+                }
+            }
+        });
+    }
+
+    // --- INTERACTION ---
+    
+    function handleCellClick(x, y) {
+        // Finde Wörter, die durch diese Zelle gehen
+        const possibleWords = words.filter(w => {
+            if (w.dir === 'h') {
+                return y === w.y && x >= w.x && x < w.x + w.word.length;
+            } else {
+                return x === w.x && y >= w.y && y < w.y + w.word.length;
+            }
+        });
+
+        if (possibleWords.length === 0) return; // Schwarzes Feld geklickt
+
+        // Logik: Wenn schon ein Wort aktiv ist und wir klicken auf Kreuzung, wechsle Richtung.
+        let nextWord = possibleWords[0];
+        
+        if (possibleWords.length > 1 && activeWord) {
+            // Wenn das aktuell aktive Wort auch hier durchgeht, nimm das ANDERE
+            if (activeWord === possibleWords[0]) nextWord = possibleWords[1];
+            else nextWord = possibleWords[0];
+        }
+
+        activateWord(nextWord, x, y);
+    }
+
+    function activateWord(wordObj, clickX, clickY) {
+        // UI Reset
+        document.querySelectorAll('.cell').forEach(c => {
+            c.classList.remove('active');
+            c.classList.remove('focused');
+        });
+
+        activeWord = wordObj;
+        document.getElementById('clueText').textContent = wordObj.clue;
+
+        // Highlight Word Cells
+        for (let i = 0; i < wordObj.word.length; i++) {
+            let cx = wordObj.x + (wordObj.dir === 'h' ? i : 0);
+            let cy = wordObj.y + (wordObj.dir === 'v' ? i : 0);
+            document.getElementById(`cell-${cx}-${cy}`).classList.add('active');
+        }
+
+        // Cursor setzen
+        if (clickX !== undefined) {
+            if (wordObj.dir === 'h') cursorPosition = clickX - wordObj.x;
+            else cursorPosition = clickY - wordObj.y;
+        } else {
+            cursorPosition = 0;
+        }
+
+        updateCursor();
+    }
+
+    function updateCursor() {
+        // Fokus entfernen
+        document.querySelectorAll('.cell.focused').forEach(c => c.classList.remove('focused'));
+
+        let cx = activeWord.x + (activeWord.dir === 'h' ? cursorPosition : 0);
+        let cy = activeWord.y + (activeWord.dir === 'v' ? cursorPosition : 0);
+        
+        const cell = document.getElementById(`cell-${cx}-${cy}`);
+        cell.classList.add('focused');
+        
+        // Sicherstellen, dass die Zelle sichtbar ist
+        cell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+
+    // --- INPUT HANDLING ---
+
+    function inputChar(char) {
+        if (!activeWord) return;
+
+        let cx = activeWord.x + (activeWord.dir === 'h' ? cursorPosition : 0);
+        let cy = activeWord.y + (activeWord.dir === 'v' ? cursorPosition : 0);
+        
+        const cell = document.getElementById(`cell-${cx}-${cy}`);
+        
+        // TextNode setzen
+        let textNode = Array.from(cell.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+        if (!textNode) {
+            textNode = document.createTextNode(char);
+            cell.appendChild(textNode);
+        } else {
+            textNode.nodeValue = char;
+        }
+
+        // Advance cursor
+        if (cursorPosition < activeWord.word.length - 1) {
+            cursorPosition++;
+            updateCursor();
+        }
+    }
+
+    function inputBackspace() {
+        if (!activeWord) return;
+
+        let cx = activeWord.x + (activeWord.dir === 'h' ? cursorPosition : 0);
+        let cy = activeWord.y + (activeWord.dir === 'v' ? cursorPosition : 0);
+        const cell = document.getElementById(`cell-${cx}-${cy}`);
+        
+        // Inhalt löschen
+        let textNode = Array.from(cell.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+        if (textNode) textNode.nodeValue = '';
+
+        // Cursor zurück
+        if (cursorPosition > 0) {
+            cursorPosition--;
+            updateCursor();
+        }
+    }
+
+    // --- GAME LOGIC ---
+
+    function checkPuzzle() {
+        let allCorrect = true;
+
+        words.forEach(w => {
+            let wordCorrect = true;
+            for (let i = 0; i < w.word.length; i++) {
+                let cx = w.x + (w.dir === 'h' ? i : 0);
+                let cy = w.y + (w.dir === 'v' ? i : 0);
+                const cell = document.getElementById(`cell-${cx}-${cy}`);
+                
+                const textNode = Array.from(cell.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+                const val = textNode ? textNode.nodeValue : '';
+                
+                if (val !== w.word[i]) {
+                    wordCorrect = false;
+                    allCorrect = false;
+                }
+            }
+
+            // Wenn Wort richtig, grün färben
+            if (wordCorrect) {
+                 for (let i = 0; i < w.word.length; i++) {
+                    let cx = w.x + (w.dir === 'h' ? i : 0);
+                    let cy = w.y + (w.dir === 'v' ? i : 0);
+                    document.getElementById(`cell-${cx}-${cy}`).classList.add('correct');
+                }
+            }
+        });
+
+        if (allCorrect) {
+            document.getElementById('clueText').textContent = "🎉 Glückwunsch! Alles richtig! 🎉";
+            document.getElementById('clueText').style.color = "var(--success)";
+        } else {
+            document.getElementById('clueText').textContent = "Einiges ist noch falsch oder fehlt. Schau auf die grünen Felder.";
+        }
+    }
+
+    function showSolution() {
+        words.forEach(w => {
+            for (let i = 0; i < w.word.length; i++) {
+                let cx = w.x + (w.dir === 'h' ? i : 0);
+                let cy = w.y + (w.dir === 'v' ? i : 0);
+                const cell = document.getElementById(`cell-${cx}-${cy}`);
+                
+                let textNode = Array.from(cell.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+                if (!textNode) {
+                    textNode = document.createTextNode(w.word[i]);
+                    cell.appendChild(textNode);
+                } else {
+                    textNode.nodeValue = w.word[i];
+                }
+                
+                // Visuell markieren
+                cell.classList.add('correct');
+                cell.classList.remove('active', 'focused');
+            }
+        });
+        
+        activeWord = null;
+        document.getElementById('clueText').textContent = "Lösung angezeigt.";
+        document.getElementById('clueText').style.color = "#555";
+    }
+
+    function resetGame() {
+        document.querySelectorAll('.cell:not(.black)').forEach(cell => {
+            cell.classList.remove('correct', 'active', 'focused');
+            let textNode = Array.from(cell.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+            if (textNode) textNode.nodeValue = '';
+        });
+        
+        activeWord = null;
+        document.getElementById('clueText').textContent = "Tippe auf ein Wort im Gitter!";
+        document.getElementById('clueText').style.color = "inherit";
+    }
+
+    // Start
+    initGame();
+
+</script>
+
+</body>
+</html>
